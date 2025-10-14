@@ -7,7 +7,7 @@ import * as ProductsService from "../../services/ProductsService";
 
 export default function ProductForm() {
   const navigate = useNavigate();
-  const { id } = useParams(); // undefined for "new", defined for edit
+  const { id } = useParams();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,7 +25,6 @@ export default function ProductForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // load product when editing
   useEffect(() => {
     let mounted = true;
     async function load() {
@@ -33,22 +32,20 @@ export default function ProductForm() {
       setLoading(true);
       setError("");
       try {
-        if (ProductsService.getProduct) {
-          const res = await ProductsService.getProduct(id);
-          const data = res && res.data ? res.data : res;
-          if (mounted && data) {
-            setFormData({
-              name: data.name ?? "",
-              sku: data.sku ?? "",
-              category: data.category ?? "",
-              unitPrice: data.unitPrice ?? "",
-              taxRate: data.taxRate ?? "",
-              reorderLevel: data.reorderLevel ?? "",
-              barcode: data.barcode ?? "",
-              description: data.description ?? "",
-              isActive: data.isActive ?? true,
-            });
-          }
+        const res = await ProductsService.getProduct(id);
+        const data = res?.data || res;
+        if (mounted && data) {
+          setFormData({
+            name: data.name ?? "",
+            sku: data.sku ?? "",
+            category: data.category ?? "",
+            unitPrice: data.unitPrice ?? "",
+            taxRate: data.taxRate ?? "",
+            reorderLevel: data.reorderLevel ?? "",
+            barcode: data.barcode ?? "",
+            description: data.description ?? "",
+            isActive: data.isActive ?? true,
+          });
         }
       } catch (err) {
         console.error("Failed to load product", err);
@@ -72,21 +69,11 @@ export default function ProductForm() {
     setError("");
     try {
       if (id) {
-        // update
-        if (!ProductsService.updateProduct) {
-          console.warn("updateProduct not implemented");
-        } else {
-          await ProductsService.updateProduct(id, formData);
-        }
-        alert("Product updated");
+        await ProductsService.updateProduct(id, formData);
+        alert("Product updated successfully");
       } else {
-        // create
-        if (!ProductsService.createProducts) {
-          console.warn("createProducts not implemented");
-        } else {
-          await ProductsService.createProducts(formData);
-        }
-        alert("Product created");
+        await ProductsService.createProducts(formData);
+        alert("Product created successfully");
       }
       navigate("/products");
     } catch (err) {
@@ -101,8 +88,8 @@ export default function ProductForm() {
     <div className="dashboard-page">
       <Sidebar />
       <main className="dashboard-main">
-        <div className="product-form-page modern-form">
-          <div className="form-card">
+        <div className="product-form-page" style={{ height: "90vh", overflowY: "auto" }}>
+          <div className="form-card" style={{ padding: "20px 30px" }}>
             <h2 className="form-title">{id ? "Edit Product" : "Add Product"}</h2>
 
             {loading ? (
@@ -111,25 +98,55 @@ export default function ProductForm() {
               <form className="product-form" onSubmit={handleSubmit}>
                 {error && <div style={{ color: "#b91c1c", marginBottom: 8 }}>{error}</div>}
 
-                <div className="form-grid">
+                <div
+                  className="form-grid"
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                    gap: "16px",
+                    marginBottom: "20px",
+                  }}
+                >
                   <label>
                     Name
-                    <input name="name" value={formData.name} onChange={handleChange} placeholder="Name" required />
+                    <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Name"
+                      required
+                    />
                   </label>
 
                   <label>
                     SKU
-                    <input name="sku" value={formData.sku} onChange={handleChange} placeholder="SKU" required />
+                    <input
+                      name="sku"
+                      value={formData.sku}
+                      onChange={handleChange}
+                      placeholder="SKU"
+                      required
+                    />
                   </label>
 
                   <label>
                     Barcode
-                    <input name="barcode" value={formData.barcode} onChange={handleChange} placeholder="Barcode" />
+                    <input
+                      name="barcode"
+                      value={formData.barcode}
+                      onChange={handleChange}
+                      placeholder="Barcode"
+                    />
                   </label>
 
                   <label>
                     Category
-                    <input name="category" value={formData.category} onChange={handleChange} placeholder="Category" />
+                    <input
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      placeholder="Category"
+                    />
                   </label>
 
                   <label>
@@ -158,25 +175,72 @@ export default function ProductForm() {
 
                   <label>
                     Reorder Level
-                    <input name="reorderLevel" type="number" value={formData.reorderLevel} onChange={handleChange} placeholder="Reorder Level" />
+                    <input
+                      name="reorderLevel"
+                      type="number"
+                      value={formData.reorderLevel}
+                      onChange={handleChange}
+                      placeholder="Reorder Level"
+                    />
                   </label>
 
-                  <label className="full-width">
+                  <label className="full-width" style={{ gridColumn: "1 / -1" }}>
                     Description
-                    <textarea name="description" value={formData.description} onChange={handleChange} rows={3} placeholder="Enter product description" />
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      rows={3}
+                      placeholder="Enter product description"
+                    />
                   </label>
 
-                  <label className="checkbox-label">
-                    <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} /> Is Active
+                  <label className="checkbox-label" style={{ display: "flex", alignItems: "center" }}>
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleChange}
+                      style={{ marginRight: "8px" }}
+                    />
+                    Is Active
                   </label>
                 </div>
 
-                <div className="form-footer">
-                  <button type="button" className="btn-secondary" onClick={() => navigate(-1)} disabled={saving}>
+                {/* Buttons aligned to left */}
+                <div
+                  className="form-footer"
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    gap: "10px",
+                    paddingTop: "10px",
+                    borderTop: "1px solid #eee",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => navigate(-1)}
+                    disabled={saving}
+                    style={{ padding: "8px 16px" }}
+                  >
                     ← Back
                   </button>
-                  <button type="submit" className="btn-primary" disabled={saving}>
-                    {saving ? (id ? "Saving…" : "Creating…") : id ? "Save Changes" : "Create Product"}
+
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={saving}
+                    style={{ padding: "8px 16px" }}
+                  >
+                    {saving
+                      ? id
+                        ? "Saving…"
+                        : "Creating…"
+                      : id
+                      ? "Save Changes"
+                      : "Create Product"}
                   </button>
                 </div>
               </form>

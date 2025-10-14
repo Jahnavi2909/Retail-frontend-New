@@ -5,6 +5,7 @@ import Sidebar from "../../components/Sidebar";
 import Pagination from "../../components/Pagination";
 import useDebounce from "../../utils/useDebounce";
 import * as ProductsService from "../../services/ProductsService";
+import AuthService from "../../services/AuthService";
 import "../../styles.css";
 
 export default function ProductList() {
@@ -25,6 +26,21 @@ export default function ProductList() {
 
   // fallback large fetch size when server search fails
   const sizeFallback = 1000;
+
+  // determine role from stored user (works with string/array/object shapes)
+  const getNormalizedRole = (roleRaw) => {
+    if (!roleRaw) return "";
+    let r = roleRaw;
+    if (Array.isArray(roleRaw) && roleRaw.length) r = roleRaw[0];
+    if (typeof r === "object") r = r.name ?? r.role ?? r.authority ?? "";
+    return String(r || "").toUpperCase().replace(/^ROLE[_\-]/, "");
+  };
+
+  const storedUser = AuthService.getStoredUser();
+  const normalizedRole = getNormalizedRole(
+    storedUser?.role ?? storedUser?.roles ?? storedUser?.authority ?? storedUser?.authorities
+  );
+  const isAdmin = normalizedRole.includes("ADMIN");
 
   const load = async (p = 0) => {
     setLoading(true);
@@ -117,7 +133,6 @@ export default function ProductList() {
       await ProductsService.deleteProduct(id);
       // reload current page (if current page becomes empty after delete, go previous)
       const newPageResp = await ProductsService.getProducts(pageResp.page, PAGE_SIZE);
-      // if backend returns empty page and there are previous pages, go back one page
       if ((newPageResp.content || []).length === 0 && pageResp.page > 0) {
         load(pageResp.page - 1);
       } else {
@@ -128,6 +143,9 @@ export default function ProductList() {
       alert("Delete failed");
     }
   };
+
+  // number of columns in table (adjust when actions column hidden)
+  const colCount = isAdmin ? 7 : 6;
 
   return (
     <div className="dashboard-page">
@@ -149,7 +167,8 @@ export default function ProductList() {
                   <option value="name">Product Name</option>
                 </select>
               </div>
-              <Link to="/products/new" className="btn-primary">+ Add Product</Link>
+              {/* Only show Add Product if admin */}
+              {isAdmin && <Link to="/products/new" className="btn-primary">+ Add Product</Link>}
             </div>
           </div>
 
@@ -168,7 +187,7 @@ export default function ProductList() {
                         <th>UNIT PRICE</th>
                         <th>TAX</th>
                         <th>ACTIVE</th>
-                        <th style={{ width: 160, textAlign: "right" }}>ACTIONS</th>
+                        {isAdmin && <th style={{ width: 160, textAlign: "right" }}>ACTIONS</th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -181,17 +200,24 @@ export default function ProductList() {
                             <td>{p.unitPrice ? `$${Number(p.unitPrice).toFixed(2)}` : ""}</td>
                             <td>{p.taxRate ? `${p.taxRate}%` : ""}</td>
                             <td><input type="checkbox" checked={!!p.isActive} readOnly /></td>
-                            <td style={{ textAlign: "right" }}>
-                              <Link to={`/products/${p.id}/edit`} className="action-btn action-edit">Edit</Link>
-                              <button className="action-btn action-delete" onClick={() => handleDelete(p.id)} style={{ marginLeft: 8 }}>
-                                Delete
-                              </button>
-                            </td>
+
+                            {isAdmin ? (
+                              <td style={{ textAlign: "right" }}>
+                                <Link to={`/products/${p.id}/edit`} className="action-btn action-edit">Edit</Link>
+                                <button
+                                  className="action-btn action-delete"
+                                  onClick={() => handleDelete(p.id)}
+                                  style={{ marginLeft: 8 }}
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            ) : null}
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={7} style={{ textAlign: "center", padding: 36 }}>No products</td>
+                          <td colSpan={colCount} style={{ textAlign: "center", padding: 36 }}>No products</td>
                         </tr>
                       )}
                     </tbody>
@@ -200,17 +226,11 @@ export default function ProductList() {
 
                 <div className="card-footer">
                   <div className="results">Showing {start} to {end} of {pageResp.totalElements} results</div>
-                  {/* <Pagination
-                    page={pageResp.page}
-                    totalPages={pageResp.totalPages}
-                    onChange={(p) => { setPage(p); load(p); }}
-                  /> */}
                   <Pagination
-                  page={pageResp.page || 0}
-                  totalPages={Math.max(1, pageResp.totalPages || 1)}
-                  onChange={(p) => { setPage(p); load(p); }}
+                    page={pageResp.page || 0}
+                    totalPages={Math.max(1, pageResp.totalPages || 1)}
+                    onChange={(p) => { setPage(p); load(p); }}
                   />
-
                 </div>
               </>
             )}

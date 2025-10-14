@@ -159,13 +159,26 @@ export async function getProducts(page = 0, size = 5) {
 // ============================================================
 // SEARCH products
 // ============================================================
-export async function searchProducts({ sku, name, page = 0, size = 5 } = {}) {
+
+// src/services/ProductsService.js
+
+export async function searchProducts({ name, page = 0, size = 5 } = {}) {
   try {
     const params = { page, size };
-    if (sku) params.sku = sku;
+
+    // ✅ Pass only name (no sku)
     if (name) params.name = name;
 
-    const res = await api.get("/api/products/SearchProducts", { params });
+    const config = {
+      params,
+      headers: {
+        Authorization: `Bearer ${Cookies.get("sr_token")}`,
+      },
+    };
+
+    // GET /api/products/SearchProducts?name=xyz&page=0&size=5
+    const res = await api.get("/api/products/search-products", config);
+
     return (
       extractPageResponse(res) || {
         content: [],
@@ -180,6 +193,7 @@ export async function searchProducts({ sku, name, page = 0, size = 5 } = {}) {
     return { content: [], page, size, totalElements: 0, totalPages: 0 };
   }
 }
+
 
 // ============================================================
 //  CREATE product

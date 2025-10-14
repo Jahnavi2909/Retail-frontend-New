@@ -8,20 +8,31 @@ function authHeaders() {
 }
 
 const InventoryService = {
-  // Create a batch for a product
   createBatch: async (payload) => {
-    // payload: { productId, quantity, costPrice, expiryDate, createdAt, location }
     const res = await api.post("/api/stock/batch", payload, {
       headers: authHeaders(),
     });
     return res.data ?? res;
   },
 
-  // Get stock batches for a single product (server should support this)
-  // Example endpoint: GET /api/inventory/stock-by-product?productId=SKU123
   getStockByProduct: async (productId) => {
     const res = await api.get(`/api/stock/${productId}`, {
-      params: { productId },
+      headers: authHeaders(),
+    });
+    return res.data ?? res;
+  },
+
+  // New: update existing batch
+  updateBatch: async (payload) => {
+    const res = await api.put("/api/stock/batch", payload, {
+      headers: authHeaders(),
+    });
+    return res.data ?? res;
+  },
+
+  //  New: delete batch by batchNumber
+  deleteBatch: async (batchNumber) => {
+    const res = await api.delete(`/api/stock/batch/${batchNumber}`, {
       headers: authHeaders(),
     });
     return res.data ?? res;
@@ -29,4 +40,3 @@ const InventoryService = {
 };
 
 export default InventoryService;
-export { InventoryService };
