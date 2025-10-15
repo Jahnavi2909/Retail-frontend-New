@@ -22,6 +22,7 @@ import Suppliers from "./pages/suppliers/Suppliers";
 import PurchaseOrders from "./pages/purchaseOrders/PurchaseOrders";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import Reports from './pages/reports/Reports';
+import SalesList from './pages/sales/SalesList';
 
 
 /**
@@ -148,6 +149,11 @@ export default function App() {
           <Route path= "/sales-report" element={
             <ProtectedRoute>
               <SalesReports />
+            </ProtectedRoute>
+          } />
+           <Route path= "/sales" element={
+            <ProtectedRoute>
+              <SalesList />
             </ProtectedRoute>
           } />
 
