@@ -161,12 +161,7 @@ export default function ProductList() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
-              <div className="filter-select">
-                <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                  <option value="sku">SKU</option>
-                  <option value="name">Product Name</option>
-                </select>
-              </div>
+
               {/* Only show Add Product if admin */}
               {isAdmin && <Link to="/products/new" className="btn-primary">+ Add Product</Link>}
             </div>
@@ -197,7 +192,7 @@ export default function ProductList() {
                             <td className="name-col">{p.name}</td>
                             <td>{p.sku}</td>
                             <td>{p.category}</td>
-                            <td>{p.unitPrice ? `$${Number(p.unitPrice).toFixed(2)}` : ""}</td>
+                            <td>{p.unitPrice ? `₹${Number(p.unitPrice).toFixed(2)}` : ""}</td>
                             <td>{p.taxRate ? `${p.taxRate}%` : ""}</td>
                             <td><input type="checkbox" checked={!!p.isActive} readOnly /></td>
 

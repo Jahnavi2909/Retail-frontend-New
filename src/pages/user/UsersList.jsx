@@ -145,7 +145,7 @@ export default function UsersList() {
                     <th>Username</th>
                     <th>Role</th>
                     <th>Password</th>
-                    <th style={{ textAlign: "right" }}>Actions</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -179,7 +179,7 @@ export default function UsersList() {
                             {noPlaintext && <small style={{ color: "#8b9aa6" }}> (not available)</small>}
                           </div>
                         </td>
-                        <td style={{ textAlign: "right" }}>
+                        <td >
                           <button className="action-btn action-edit" onClick={() => onEdit(id)}>Edit</button>
                           <button className="action-btn action-delete" onClick={() => onDelete(id)} style={{ marginLeft: 8 }}>Delete</button>
                         </td>

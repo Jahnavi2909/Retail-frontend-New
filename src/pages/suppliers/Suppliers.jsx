@@ -36,7 +36,7 @@ const Suppliers = () => {
   const fetchSuppliers = async () => {
     try {
       const res = await axios.get(API_BASE, {
-        headers: { Authorization: 'Bearer ${Cookies.get("sr_token")}' }
+        headers: { Authorization: `Bearer ${Cookies.get("sr_token")}` }
       });
       const list = Array.isArray(res.data?.data) ? res.data.data : [];
       setSuppliers(list);

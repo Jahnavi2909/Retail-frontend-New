@@ -6,7 +6,7 @@ import Cookies from "js-cookie";
 import '../../styles/SalePOS.css'
 import Sidebar from "../../components/Sidebar";
 
-const API_BASE = "http://smartest-env.eba-febxxxwz.ap-south-1.elasticbeanstalk.com/api";
+const API_BASE = "https://d1x2sux8i7gb9h.cloudfront.net/api";
 
 const CashierDashboard = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const CashierDashboard = () => {
 
   // ✅ Fetch recent transactions
   const fetchTransactions = async () => {
-    const res = await axios.get(`${API_BASE}/sales/recent`, {
+    const res = await axios.get(`${API_BASE}/sales`, {
       headers: { Authorization: `Bearer ${Cookies.get("sr_token")}` },
     });
     setTransactions(res.data?.data || []);

@@ -45,7 +45,7 @@ export default function StockByProduct() {
         const key = `${productId}::${batchNumber ?? "NO_BATCH"}`;
 
         const qty = Number(b.quantity ?? 0);
-        const cost = b.costPrice != null ? Number(b.costPrice) : 0;
+        const cost = b.costPrice != null ? (Number(b.costPrice) ): 0;
 
         if (!mergedMap[key]) {
           mergedMap[key] = {

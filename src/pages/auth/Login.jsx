@@ -77,26 +77,7 @@ export default function Login() {
     await doLogin(username, password);
   };
 
-  // Quick demo credentials - replace with real demo creds if different
-  const demoAdmin = async () => {
-    const u = "admin@example.com";
-    const p = "admin123"; // change to your demo admin password
-    setUsername(u); setPassword(p);
-    await doLogin(u, p);
-  };
-  const demoManager = async () => {
-    const u = "manager@example.com";
-    const p = "manager123"; // change to your demo manager password
-    setUsername(u); setPassword(p);
-    await doLogin(u, p);
-  };
-  const demoCashier = async () => {
-    const u = "cashier@example.com";
-    const p = "cashier123"; // change to your demo cashier password
-    setUsername(u); setPassword(p);
-    await doLogin(u, p);
-  };
-
+  
   return (
     <div className="login-page">
       <main className="login-main">
@@ -146,27 +127,10 @@ export default function Login() {
 
             <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
               <button className="btn btn-primary" type="submit">Log in</button>
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => { setUsername("demo"); setPassword("demo"); }}
-              >
-                Demo
-              </button>
+              
             </div>
 
-            {/* Quick role login buttons (Admin / Manager / Cashier)
-            <div style={{ marginTop: 14, display: "flex", gap: 10 }}>
-              <button type="button" className="btn btn-small" onClick={demoAdmin}>
-                Login as Admin
-              </button>
-              <button type="button" className="btn btn-small" onClick={demoManager}>
-                Login as Manager
-              </button>
-              <button type="button" className="btn btn-small" onClick={demoCashier}>
-                Login as Cashier
-              </button>
-            </div> */}
+          
 
             {error && <div className="form-error" role="alert" style={{ marginTop: 12 }}>{error}</div>}
           </form>

@@ -5,7 +5,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import Sidebar from "../../components/Sidebar";
 
-const API_BASE = "http://smartest-env.eba-febxxxwz.ap-south-1.elasticbeanstalk.com/api";
+const API_BASE = "https://d1x2sux8i7gb9h.cloudfront.net/api";
 
 const ManagerDashboard = () => {
   const [suppliersCount, setSuppliersCount] = useState(0);
@@ -46,7 +46,7 @@ const ManagerDashboard = () => {
       headers: { Authorization: `Bearer ${Cookies.get("sr_token")}` },
     });
     const allOrders = res.data?.data || [];
-    const pending = allOrders.filter((o) => o.status === "Pending").length;
+    const pending = allOrders.filter((o) => o.status === "PENDING").length;
     setPendingOrders(pending);
   };
 

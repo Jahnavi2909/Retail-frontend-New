@@ -46,7 +46,7 @@ export default function Sidebar() {
           <>
             <NavLink to="/" className={linkClass} end>
               <span className="nav-icon">🏠</span>
-              <span>Admin Dashboard</span>
+              <span>Admin</span>
             </NavLink>
 
             <NavLink to="/sales" className={linkClass}>

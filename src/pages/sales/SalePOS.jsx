@@ -149,13 +149,21 @@ export default function SalePOS() {
   };
 
   // totals
-  const subtotal = cart.reduce((s, i) => s + Number(i.unitPrice || 0) * Number(i.qty || 0), 0);
-  const taxTotal = cart.reduce(
-    (s, i) => s + (Number(i.unitPrice || 0) * Number(i.qty || 0) * (Number(i.taxRate || 0) / 100)),
-    0
-  );
-  const discountTotal = Number(discount || 0);
-  const total = +(subtotal + taxTotal - discountTotal).toFixed(2);
+ // totals
+const subtotal = cart.reduce((s, i) => s + Number(i.unitPrice || 0) * Number(i.qty || 0), 0);
+
+// Calculate tax total as percentage of each product’s rate
+const taxTotal = cart.reduce(
+  (s, i) => s + (Number(i.unitPrice || 0) * Number(i.qty || 0) * (Number(i.taxRate || 0) / 100)),
+  0
+);
+
+//  Discount entered as percentage (%)
+const discountTotal = (subtotal * Number(discount || 0)) / 100;
+
+// Final total = subtotal + tax - discount
+const total = +(subtotal + taxTotal - discountTotal).toFixed(2);
+
 
   const validateCashierId = () => {
     const v = cashierIdInput === "" ? null : Number(cashierIdInput);
@@ -432,20 +440,21 @@ export default function SalePOS() {
               </tbody>
             </table>
 
-            <div className="cart-summary">
-              <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
-              <p>Tax Total: ₹{taxTotal.toFixed(2)}</p>
-              <p>Discount: ₹{discountTotal.toFixed(2)}</p>
-              <h3>Total: ₹{total.toFixed(2)}</h3>
-            </div>
+           <div className="cart-summary">
+            <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
+            <p>Tax Total: ₹{taxTotal.toFixed(2)}</p>
+            <p>Discount ({discount}%): -₹{discountTotal.toFixed(2)}</p>
+            <h3>Total: ₹{total.toFixed(2)}</h3>
+          </div>
+
 
             {/* Payment controls */}
             <div className="discount-payment">
               <div className="discount-block">
-                <label>Discount (amount)</label>
+                <label>Discount (%)</label>
                 <input
                   type="number"
-                  placeholder="Enter discount amount"
+                  placeholder="Enter discount "
                   value={discount}
                   onChange={(e) => setDiscount(Number(e.target.value || 0))}
                 />

@@ -22,7 +22,7 @@ export default function AdminPanel() {
       <div className="admin-body">
         <div className="admin-row"><strong>Name</strong><div>{user?.username || "Admin User"}</div></div>
         <div className="admin-actions">
-          <button className="btn small ghost" onClick={() => alert("Change password flow (implement)")}>Change password</button>
+          
           <button className="btn small" onClick={() => { logout && logout(); }}>Logout</button>
         </div>
       </div>

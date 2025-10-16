@@ -133,7 +133,7 @@ a{color:var(--primary);text-decoration:none}
 .header h1 {
   font-size: 1.8rem;
   font-weight: 600;
-  margin-bottom: 25px;
+  margin-bottom: 3px;
 }
 
 /* Sales summary */

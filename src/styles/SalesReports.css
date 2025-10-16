@@ -1,6 +1,7 @@
 .sales-reports {
   display: flex;
-  height: 100vh;
+  max-height: 100vh;
+  overflow: scroll;
 }
 
 .sidebar {
