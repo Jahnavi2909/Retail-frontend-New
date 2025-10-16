@@ -1,5 +1,5 @@
-﻿// src/pages/products/ProductList.jsx
-import React, { useEffect, useState } from "react";
+// src/pages/products/ProductList.jsx
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Pagination from "../../components/Pagination";
@@ -8,9 +8,15 @@ import * as ProductsService from "../../services/ProductsService";
 import AuthService from "../../services/AuthService";
 import "../../styles.css";
 
+/**
+ * ProductList (updated)
+ * - Ensures deleted products are removed from the visible list immediately
+ * - Guarantees search results contain only matching items (server-first, then client-side)
+ * - Adds a small Tailwind-based toast notification for success / error messages
+ */
+
 export default function ProductList() {
-  const PAGE_SIZE = 5;
-  const [filterType, setFilterType] = useState("sku");
+  const PAGE_SIZE = 6;
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 400);
 
@@ -19,15 +25,17 @@ export default function ProductList() {
     page: 0,
     size: PAGE_SIZE,
     totalElements: 0,
-    totalPages: 0,
+    totalPages: 1,
   });
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // fallback large fetch size when server search fails
   const sizeFallback = 1000;
 
-  // determine role from stored user (works with string/array/object shapes)
+  // Use native alerts for notifications
+  const showAlert = (message) => window.alert(message);
+
+  // Role
   const getNormalizedRole = (roleRaw) => {
     if (!roleRaw) return "";
     let r = roleRaw;
@@ -42,110 +50,173 @@ export default function ProductList() {
   );
   const isAdmin = normalizedRole.includes("ADMIN");
 
+  // normalize product and filter out deleted/malformed
+  const normalizeProduct = (raw) => {
+    if (!raw || (typeof raw === "object" && Object.keys(raw).length === 0)) return null;
+    const id = raw.id ?? raw.productId ?? raw._id ?? raw.sku ?? null;
+    const name = (raw.name ?? raw.productName ?? "").toString();
+    const category = typeof raw.category === "string" ? raw.category : raw.category?.name ?? raw.category?.title ?? raw.category ?? "";
+    const sku = raw.sku ?? raw.code ?? raw.SKU ?? "";
+    const unitPrice = raw.unitPrice ?? raw.price ?? raw.cost ?? 0;
+    const taxRate = raw.taxRate ?? raw.tax ?? raw.vat ?? null;
+    const isActive = raw.isActive ?? raw.active ?? raw.status === "active" ?? raw.deleted === false ?? true;
+    const deleted = raw.deleted ?? raw.isDeleted ?? false;
+    if (!id || deleted) return null;
+    return { id, name, sku, category, unitPrice: Number(unitPrice ?? 0), taxRate, isActive: !!isActive, raw };
+  };
+
+  const buildPageResp = (items, pageIndex = 0) => {
+    const totalElements = items.length;
+    const totalPages = Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+    const start = pageIndex * PAGE_SIZE;
+    const content = items.slice(start, start + PAGE_SIZE);
+    return { content, page: pageIndex, size: PAGE_SIZE, totalElements, totalPages };
+  };
+
+  // unified load function
   const load = async (p = 0) => {
     setLoading(true);
     try {
-      // If there is a search term, try server search first
-      if (debouncedQuery && debouncedQuery.trim() !== "") {
-        const params = filterType === "sku" ? { sku: debouncedQuery } : { name: debouncedQuery };
+      const q = debouncedQuery?.trim();
+      if (q) {
+        // Try server search. If server returns items, filter them to ensure they match query across name/sku/category.
         try {
-          const res = await ProductsService.searchProducts({ ...params, page: p, size: PAGE_SIZE });
-          if (res && res.content && res.content.length > 0) {
-            setPageResp(res);
+          const res = await ProductsService.searchProducts({ q, page: p, size: PAGE_SIZE });
+          // extract list
+          let serverList = res?.content ?? res?.data?.content ?? res?.data ?? res ?? [];
+          if (!Array.isArray(serverList) && typeof serverList === "object") {
+            serverList = serverList?.items ?? serverList?.results ?? [];
+          }
+          serverList = Array.isArray(serverList) ? serverList : [];
+
+          const normalized = serverList.map(normalizeProduct).filter(Boolean);
+
+          // enforce matching filter client-side to guarantee only matching items are shown
+          const lowq = q.toLowerCase();
+          const matched = normalized.filter((it) => {
+            const checks = [(it.name || "").toString().toLowerCase(), (it.sku || "").toString().toLowerCase(), (it.category || "").toString().toLowerCase()];
+            return checks.some((s) => s.includes(lowq));
+          });
+
+          if (matched.length > 0) {
+            setPageResp(buildPageResp(matched, p));
             setPage(p);
           } else {
-            // server returned empty => fallback to client-side search (fetch larger set)
-            const all = await ProductsService.getProducts(0, sizeFallback);
-            const list = (all && all.content) || [];
-            const q = debouncedQuery.trim().toLowerCase();
-            const filtered = list.filter((item) => {
-              if (!item) return false;
-              const checks = [
-                (item.name || "").toString().toLowerCase(),
-                (item.sku || "").toString().toLowerCase(),
-                (item.category || "").toString().toLowerCase(),
-              ];
-              return checks.some((s) => s.includes(q));
-            });
-            // Build a pageResp-like object from filtered list
-            const totalElements = filtered.length;
-            const totalPages = Math.ceil(totalElements / PAGE_SIZE) || 1;
-            const startIdx = p * PAGE_SIZE;
-            const pageContent = filtered.slice(startIdx, startIdx + PAGE_SIZE);
-            setPageResp({ content: pageContent, page: p, size: PAGE_SIZE, totalElements, totalPages });
-            setPage(p);
+            // server returned nothing matching -> fallback to client-side large fetch
+            await clientSideFilter(q, p);
           }
         } catch (err) {
-          // if the search endpoint failed entirely, fallback to client-side
-          console.warn("searchProducts failed, falling back to client-side filter:", err);
-          const all = await ProductsService.getProducts(0, sizeFallback);
-          const list = (all && all.content) || [];
-          const q = debouncedQuery.trim().toLowerCase();
-          const filtered = list.filter((item) => {
-            if (!item) return false;
-            const checks = [
-              (item.name || "").toString().toLowerCase(),
-              (item.sku || "").toString().toLowerCase(),
-              (item.category || "").toString().toLowerCase(),
-            ];
-            return checks.some((s) => s.includes(q));
-          });
-          const totalElements = filtered.length;
-          const totalPages = Math.ceil(totalElements / PAGE_SIZE) || 1;
-          const startIdx = p * PAGE_SIZE;
-          const pageContent = filtered.slice(startIdx, startIdx + PAGE_SIZE);
-          setPageResp({ content: pageContent, page: p, size: PAGE_SIZE, totalElements, totalPages });
-          setPage(p);
+          console.warn("Server search failed, falling back to client-side", err);
+          await clientSideFilter(q, p);
         }
       } else {
-        // normal list
-        const res = await ProductsService.getProducts(p, PAGE_SIZE);
-        setPageResp(res || { content: [], page: p, size: PAGE_SIZE, totalElements: 0, totalPages: 0 });
-        setPage(p);
+        // no search: normal paged server list
+        try {
+          const res = await ProductsService.getProducts(p, PAGE_SIZE);
+          const serverContent = res?.content ?? res?.data?.content ?? res?.data ?? res ?? [];
+          const normalized = (Array.isArray(serverContent) ? serverContent : []).map(normalizeProduct).filter(Boolean);
+
+          const totalElements = typeof res?.totalElements === "number" ? res.totalElements : typeof res?.data?.totalElements === "number" ? res.data.totalElements : Math.max(0, normalized.length);
+          const totalPages = typeof res?.totalPages === "number" ? res.totalPages : typeof res?.data?.totalPages === "number" ? res.data.totalPages : Math.max(1, Math.ceil(totalElements / PAGE_SIZE));
+          const safePage = p >= totalPages ? 0 : p;
+
+          setPageResp({ content: normalized, page: safePage, size: PAGE_SIZE, totalElements, totalPages });
+          setPage(safePage);
+        } catch (err) {
+          console.error("Failed loading products:", err);
+          setPageResp({ content: [], page: 0, size: PAGE_SIZE, totalElements: 0, totalPages: 1 });
+          setPage(0);
+        }
       }
-    } catch (err) {
-      console.error("Load products error", err);
-      setPageResp({ content: [], page: p, size: PAGE_SIZE, totalElements: 0, totalPages: 0 });
     } finally {
       setLoading(false);
     }
   };
 
-  // reset to first page when query or filter changes
+  // client-side fallback: load a large set, normalize, filter, then paginate
+  const clientSideFilter = async (q, p = 0) => {
+    try {
+      const resAll = await ProductsService.getProducts(0, sizeFallback);
+      const allRaw = resAll?.content ?? resAll?.data?.content ?? resAll?.data ?? [];
+      const normalizedAll = (Array.isArray(allRaw) ? allRaw : []).map(normalizeProduct).filter(Boolean);
+
+      const lowq = q.toString().toLowerCase();
+      const filtered = normalizedAll.filter((it) => {
+        const checks = [(it.name || "").toString().toLowerCase(), (it.sku || "").toString().toLowerCase(), (it.category || "").toString().toLowerCase()];
+        return checks.some((s) => s.includes(lowq));
+      });
+
+      const resp = buildPageResp(filtered, p);
+      setPageResp(resp);
+      setPage(p);
+    } catch (err) {
+      console.error("Client-side filter failed:", err);
+      setPageResp({ content: [], page: 0, size: PAGE_SIZE, totalElements: 0, totalPages: 1 });
+      setPage(0);
+    }
+  };
+
   useEffect(() => {
     setPage(0);
     load(0);
-    // eslint-disable-next-line
-  }, [debouncedQuery, filterType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery]);
 
   useEffect(() => {
     load(0);
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const start = pageResp.totalElements === 0 ? 0 : pageResp.page * pageResp.size + 1;
   const end = Math.min((pageResp.page + 1) * pageResp.size, pageResp.totalElements);
 
-  const handleDelete = async (id) => {
+  // Delete with optimistic UI update and toast
+  const handleDelete = async (idOrSku) => {
     const ok = window.confirm("Delete this product?");
     if (!ok) return;
+
+    // optimistic removal from current page
+    const prevResp = pageResp;
+    const newContent = (pageResp.content || []).filter((p) => {
+      const serverId = p?.raw?.id ?? p?.raw?.productId ?? p?.id;
+      return String(serverId) !== String(idOrSku) && String(p.id) !== String(idOrSku);
+    });
+    const newTotal = Math.max(0, (pageResp.totalElements || 0) - 1);
+    const newTotalPages = Math.max(1, Math.ceil(newTotal / PAGE_SIZE));
+
+    setPageResp({ content: newContent, page: pageResp.page, size: PAGE_SIZE, totalElements: newTotal, totalPages: newTotalPages });
+
     try {
-      await ProductsService.deleteProduct(id);
-      // reload current page (if current page becomes empty after delete, go previous)
-      const newPageResp = await ProductsService.getProducts(pageResp.page, PAGE_SIZE);
-      if ((newPageResp.content || []).length === 0 && pageResp.page > 0) {
-        load(pageResp.page - 1);
+      // Prefer backend id if present
+      const target = (() => {
+        const found = (pageResp.content || []).find((p) => String(p.id) === String(idOrSku) || String(p?.raw?.id ?? p?.raw?.productId) === String(idOrSku));
+        const sid = found?.raw?.id ?? found?.raw?.productId ?? found?.id ?? idOrSku;
+        return sid;
+      })();
+
+      await ProductsService.deleteProduct(target);
+      showAlert("Product deleted");
+
+      // If current page became empty and there are previous pages, load previous page
+      if (newContent.length === 0 && pageResp.page > 0) {
+        await load(pageResp.page - 1);
       } else {
-        load(pageResp.page);
+        // try to reload current page from server to keep consistent
+        await load(pageResp.page);
       }
     } catch (err) {
       console.error("Delete failed", err);
-      alert("Delete failed");
+      const msg = err?.response?.data?.message || err?.message || "Delete failed";
+      const ref = err?.response?.data?.data;
+      showAlert(ref ? `${msg} (ref: ${ref})` : msg);
+      // rollback optimistic update by reloading previous state
+      setPageResp(prevResp);
     }
   };
 
-  // number of columns in table (adjust when actions column hidden)
   const colCount = isAdmin ? 7 : 6;
+
+  const visibleContent = useMemo(() => (pageResp.content || []).filter(Boolean), [pageResp.content]);
 
   return (
     <div className="dashboard-page">
@@ -162,8 +233,11 @@ export default function ProductList() {
                 onChange={(e) => setQuery(e.target.value)}
               />
 
-              {/* Only show Add Product if admin */}
-              {isAdmin && <Link to="/products/new" className="btn-primary">+ Add Product</Link>}
+              {isAdmin && (
+                <Link to="/products/new" className="btn-primary" style={{ marginLeft: 12 }}>
+                  + Add Product
+                </Link>
+              )}
             </div>
           </div>
 
@@ -186,22 +260,26 @@ export default function ProductList() {
                       </tr>
                     </thead>
                     <tbody>
-                      {pageResp.content && pageResp.content.length ? (
-                        pageResp.content.map((p) => (
+                      {visibleContent && visibleContent.length ? (
+                        visibleContent.map((p) => (
                           <tr key={p.id ?? p.sku}>
-                            <td className="name-col">{p.name}</td>
-                            <td>{p.sku}</td>
-                            <td>{p.category}</td>
-                            <td>{p.unitPrice ? `₹${Number(p.unitPrice).toFixed(2)}` : ""}</td>
-                            <td>{p.taxRate ? `${p.taxRate}%` : ""}</td>
-                            <td><input type="checkbox" checked={!!p.isActive} readOnly /></td>
+                            <td className="name-col">{p.name || "-"}</td>
+                            <td>{p.sku || "-"}</td>
+                            <td>{p.category || "-"}</td>
+                            <td>{p.unitPrice ? `₹${Number(p.unitPrice).toFixed(2)}` : "-"}</td>
+                            <td>{p.taxRate ? `${p.taxRate}%` : "-"}</td>
+                            <td>
+                              <input type="checkbox" checked={!!p.isActive} readOnly />
+                            </td>
 
                             {isAdmin ? (
                               <td style={{ textAlign: "right" }}>
-                                <Link to={`/products/${p.id}/edit`} className="action-btn action-edit">Edit</Link>
+                                <Link to={`/products/${p.id}/edit`} className="action-btn action-edit">
+                                  Edit
+                                </Link>
                                 <button
                                   className="action-btn action-delete"
-                                  onClick={() => handleDelete(p.id)}
+                                  onClick={() => handleDelete(p?.raw?.id ?? p?.raw?.productId ?? p.id)}
                                   style={{ marginLeft: 8 }}
                                 >
                                   Delete
@@ -212,7 +290,9 @@ export default function ProductList() {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={colCount} style={{ textAlign: "center", padding: 36 }}>No products</td>
+                          <td colSpan={colCount} style={{ textAlign: "center", padding: 36 }}>
+                            No products
+                          </td>
                         </tr>
                       )}
                     </tbody>
@@ -224,13 +304,18 @@ export default function ProductList() {
                   <Pagination
                     page={pageResp.page || 0}
                     totalPages={Math.max(1, pageResp.totalPages || 1)}
-                    onChange={(p) => { setPage(p); load(p); }}
+                    onChange={(p) => {
+                      setPage(p);
+                      load(p);
+                    }}
                   />
                 </div>
               </>
             )}
           </div>
         </div>
+
+
       </main>
     </div>
   );

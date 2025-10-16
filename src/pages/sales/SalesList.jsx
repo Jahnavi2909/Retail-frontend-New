@@ -12,7 +12,7 @@ import "../../styles.css";
  */
 
 export default function SalesList() {
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 6;
   const [page, setPage] = useState(0);
   const [resp, setResp] = useState({
     content: [],
@@ -261,7 +261,7 @@ export default function SalesList() {
                 <table className="dash-table" style={{ minWidth: 900 }}>
                   <thead>
                     <tr>
-                      <th>ID</th>
+                     
                       <th>Cashier ID</th>
                       <th>Date</th>
                       <th>Items</th>
@@ -278,7 +278,7 @@ export default function SalesList() {
                         const itemsCount = Array.isArray(s.items) ? s.items.length : s.itemsCount ?? 0;
                         return (
                           <tr key={s.id}>
-                            <td>{s.id}</td>
+                            
                             <td>{s.cashierId ?? "-"}</td>
                             <td>{formatDate(s.createdAt)}</td>
                             <td>{itemsCount}</td>

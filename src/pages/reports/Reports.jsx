@@ -1,5 +1,5 @@
 // src/pages/reports/Reports.jsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import axios from "axios";
 import "../../styles/Reports.css";
 import {
@@ -14,9 +14,7 @@ import {
 } from "recharts";
 import Cookies from "js-cookie";
 import Sidebar from "../../components/Sidebar";
-
-const API_BASE =
-  "http://smartest-env.eba-febxxxwz.ap-south-1.elasticbeanstalk.com/api/reports";
+import { API_BASE } from "../../services/Api";
 
 function formatCurrency(v) {
   if (v == null) return "₹0.00";
@@ -25,10 +23,75 @@ function formatCurrency(v) {
   return `₹${n.toFixed(2)}`;
 }
 
+/**
+ * Safe helpers to extract numeric fields from a transaction item.
+ * Backend transactions may name fields differently — try common keys.
+ */
+const extractTxnAmount = (tx) =>
+  Number(tx?.amount ?? tx?.total ?? tx?.gross ?? tx?.totalAmount ?? tx?.price ?? 0);
+
+const extractTxnTax = (tx) =>
+  Number(tx?.tax ?? tx?.taxAmount ?? tx?.taxTotal ?? 0);
+
+const extractTxnDiscount = (tx) =>
+  Number(tx?.discount ?? tx?.discountAmount ?? tx?.discountTotal ?? 0);
+
+/**
+ * If the response payload is an array of transaction objects, compute summary totals.
+ * If payload is already a summary object, normalize and return it.
+ */
+function computeSummaryFromPayload(payload, fromDate, toDate) {
+  // If payload is an array -> treat as transaction list
+  if (Array.isArray(payload)) {
+    const txs = payload;
+    const transactions = txs.length;
+    const grossTotal = txs.reduce((s, t) => s + extractTxnAmount(t), 0);
+    const taxTotal = txs.reduce((s, t) => s + extractTxnTax(t), 0);
+    const discountTotal = txs.reduce((s, t) => s + extractTxnDiscount(t), 0);
+    // net might be provided per txn or computed as gross - tax - discount
+    const netTotal =
+      txs.reduce((s, t) => s + (Number(t?.net ?? 0)), 0) || grossTotal - taxTotal - discountTotal;
+
+    return {
+      from: fromDate,
+      to: toDate,
+      transactions,
+      grossTotal,
+      netTotal,
+      taxTotal,
+      discountTotal,
+      source: "transactions",
+    };
+  }
+
+  // If payload is an object, try to read totals directly, with fallbacks
+  if (payload && typeof payload === "object") {
+    const transactions = Number(payload.transactions ?? payload.count ?? payload.totalTransactions ?? 0);
+    const grossTotal = Number(payload.grossTotal ?? payload.gross ?? payload.total ?? payload.totalAmount ?? 0);
+    const netTotal = Number(payload.netTotal ?? payload.net ?? payload.netAmount ?? 0);
+    const taxTotal = Number(payload.taxTotal ?? payload.tax ?? payload.totalTax ?? 0);
+    const discountTotal = Number(payload.discountTotal ?? payload.discount ?? payload.totalDiscount ?? 0);
+
+    return {
+      from: payload.from ?? fromDate,
+      to: payload.to ?? toDate,
+      transactions,
+      grossTotal,
+      netTotal,
+      taxTotal,
+      discountTotal,
+      source: "summary",
+    };
+  }
+
+  // Unknown payload => return null
+  return null;
+}
+
 export default function Reports() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [report, setReport] = useState(null); // either object { from,to,transactions,grossTotal,... } or null
+  const [report, setReport] = useState(null); // normalized summary object or null
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,63 +110,58 @@ export default function Reports() {
 
     try {
       setLoading(true);
+
       const fromISO = `${from}T00:00:00`;
       const toISO = `${to}T23:59:59`;
 
-      const res = await axios.get(`${API_BASE}/sales`, {
-        // your backend route might be /sales or /sales-summary — adjust as needed
+      const res = await axios.get(`${API_BASE}/reports/sales`, {
         params: { from: fromISO, to: toISO },
         headers: { Authorization: `Bearer ${Cookies.get("sr_token")}` },
       });
 
-      // The backend uses envelope: { success, message, data: { ... } } or data: []
+      // backend may return envelope: { success, message, data } or array/data or direct object
       const envelope = res?.data ?? res;
-      const payload = envelope?.data;
+      const payload = envelope?.data ?? envelope;
 
-      // If payload is an array (empty list), treat as "no data"
-      if (Array.isArray(payload)) {
-        setReport(null); // no summary available
-      } else if (payload && typeof payload === "object") {
-        // expected summary object with fields: from, to, transactions, grossTotal, netTotal, taxTotal, discountTotal
-        const summary = {
-          from: payload.from ?? from,
-          to: payload.to ?? to,
-          transactions: Number(payload.transactions ?? 0),
-          grossTotal: Number(payload.grossTotal ?? 0),
-          netTotal: Number(payload.netTotal ?? 0),
-          taxTotal: Number(payload.taxTotal ?? 0),
-          discountTotal: Number(payload.discountTotal ?? 0),
-        };
-        setReport(summary);
-      } else {
-        // no usable data
+      // compute normalized summary (either from array or object)
+      const summary = computeSummaryFromPayload(payload, from, to);
+
+      if (!summary) {
+        // If payload is empty array or null, explicitly set report=null and show a friendly message
         setReport(null);
-      }
-
-      if (!payload || (Array.isArray(payload) && payload.length === 0)) {
-        // optional: notify user explicitly
-        // setError("No report data found for the selected dates.");
+        if (!payload || (Array.isArray(payload) && payload.length === 0)) {
+          setError("No report data found for the selected dates.");
+        } else {
+          setError("Unexpected report format received from server. Check console for details.");
+          // log payload for debugging
+          console.warn("Reports: unexpected payload:", payload);
+        }
+      } else {
+        setReport(summary);
       }
     } catch (err) {
       console.error("Error loading sales report:", err);
-      setError(err?.response?.data?.message ?? err?.message ?? "Failed to fetch sales report.");
+      // prefer server message when available
+      const serverMsg = err?.response?.data?.message ?? err?.response?.data ?? err?.message;
+      setError(String(serverMsg) || "Failed to fetch sales report.");
       setReport(null);
     } finally {
       setLoading(false);
     }
   };
 
-  // prepare chart data (single bar group)
-  const chartData = report
-    ? [
-        {
-          name: `${report.from} → ${report.to}`,
-          Gross: report.grossTotal,
-          Tax: report.taxTotal,
-          Net: report.netTotal,
-        },
-      ]
-    : [];
+  // prepare chart data (single bar group) using numeric values (ensure numbers)
+  const chartData = useMemo(() => {
+    if (!report) return [];
+    return [
+      {
+        name: `${report.from} → ${report.to}`,
+        Gross: Number(report.grossTotal ?? 0),
+        Tax: Number(report.taxTotal ?? 0),
+        Net: Number(report.netTotal ?? 0),
+      },
+    ];
+  }, [report]);
 
   return (
     <div className="page-container">
@@ -112,7 +170,10 @@ export default function Reports() {
       <div className="main-content" style={{ padding: 24 }}>
         <h1 className="page-title">Sales Report Summary</h1>
 
-        <div className="filter-bar" style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 18 }}>
+        <div
+          className="filter-bar"
+          style={{ display: "flex", gap: 12, alignItems: "flex-end", marginBottom: 18, flexWrap: "wrap" }}
+        >
           <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             From
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
@@ -129,11 +190,7 @@ export default function Reports() {
             </button>
           </div>
 
-          {error && (
-            <div style={{ color: "crimson", marginLeft: 12 }}>
-              {error}
-            </div>
-          )}
+          {error && <div style={{ color: "crimson", marginLeft: 12 }}>{error}</div>}
         </div>
 
         {/* If no report found */}
@@ -145,15 +202,24 @@ export default function Reports() {
 
         {/* KPIs */}
         {report && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 18 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 12,
+              marginBottom: 18,
+            }}
+          >
             <div className="kpi-card" style={{ padding: 12 }}>
               <div className="kpi-title">Date Range</div>
-              <div className="kpi-value" style={{ fontSize: 16 }}>{report.from} → {report.to}</div>
+              <div className="kpi-value" style={{ fontSize: 16 }}>
+                {report.from} → {report.to}
+              </div>
             </div>
 
             <div className="kpi-card" style={{ padding: 12 }}>
               <div className="kpi-title">Transactions</div>
-              <div className="kpi-value">{report.transactions}</div>
+              <div className="kpi-value">{Number(report.transactions ?? 0)}</div>
             </div>
 
             <div className="kpi-card" style={{ padding: 12 }}>
@@ -218,16 +284,16 @@ export default function Reports() {
                 <tr>
                   <td style={{ padding: 8 }}>{report.from}</td>
                   <td style={{ padding: 8 }}>{report.to}</td>
-                  <td style={{ padding: 8 }}>{report.transactions}</td>
-                  <td style={{ padding: 8 }}>{report.grossTotal.toFixed(2)}</td>
-                  <td style={{ padding: 8 }}>{report.taxTotal.toFixed(2)}</td>
-                  <td style={{ padding: 8 }}>{report.netTotal.toFixed(2)}</td>
-                  <td style={{ padding: 8 }}>{report.discountTotal.toFixed(2)}</td>
+                  <td style={{ padding: 8 }}>{Number(report.transactions ?? 0)}</td>
+                  <td style={{ padding: 8 }}>{(Number(report.grossTotal ?? 0)).toFixed(2)}</td>
+                  <td style={{ padding: 8 }}>{(Number(report.taxTotal ?? 0)).toFixed(2)}</td>
+                  <td style={{ padding: 8 }}>{(Number(report.netTotal ?? 0)).toFixed(2)}</td>
+                  <td style={{ padding: 8 }}>{(Number(report.discountTotal ?? 0)).toFixed(2)}</td>
                 </tr>
               ) : (
                 <tr>
                   <td colSpan={7} style={{ padding: 18, textAlign: "center", color: "#6b7280" }}>
-                    {loading ? "Loading…" : "No summary available for the selected date range."}
+                    {loading ? "Loading…" : error ? error : "No summary available for the selected date range."}
                   </td>
                 </tr>
               )}

@@ -139,7 +139,7 @@
   color: #856404;
 }
 
-.status-badge.shipped {
+.status-badge.approved {
   background-color: #d4edda;
   color: #155724;
 }
@@ -149,7 +149,7 @@
   color: #004085;
 }
 
-.status-badge.in-progress {
+.status-badge.cancelled {
   background-color: #e2d6fd;
   color: #6f42c1;
 }

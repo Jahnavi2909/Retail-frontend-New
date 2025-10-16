@@ -1,4 +1,4 @@
-﻿// import api from "./Api";
+// import api from "./Api";
 // import Cookies from "js-cookie";
 
 // /**
@@ -250,12 +250,11 @@ export async function updateProduct(id, data) {
 //  DELETE product
 // ============================================================
 export async function deleteProduct(id) {
+  console.log(id)
   try {
-    const res = await api.delete(`/api/products/${id}`, {
-      headers: {
-        Authorization: `Bearer ${Cookies.get("sr_token")}`,
-      },
-    });
+    const baseHeaders = { headers: { Authorization: `Bearer ${Cookies.get("sr_token")}` } };
+    const pid = Number.isNaN(Number(id)) ? id : Number(id);
+    const res = await api.delete(`/api/products/${pid}`, baseHeaders);
     return res.data ?? res;
   } catch (err) {
     console.error("deleteProduct error:", err);

@@ -1,5 +1,5 @@
 // src/pages/inventory/StockByProduct.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import "../../styles.css";
@@ -7,13 +7,20 @@ import InventoryService from "../../services/InventoryService";
 import * as ProductsService from "../../services/ProductsService";
 
 export default function StockByProduct() {
+  const PAGE_SIZE = 7; // show 7 rows per page
   const [rows, setRows] = useState([]); // merged rows
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     loadAllStocks();
   }, []);
+
+  // whenever search changes, reset to first page
+  useEffect(() => {
+    setPage(0);
+  }, [search]);
 
   async function loadAllStocks() {
     setLoading(true);
@@ -23,7 +30,7 @@ export default function StockByProduct() {
 
       const allBatches = [];
       await Promise.all(
-        productList.map(async (product) => {
+        (Array.isArray(productList) ? productList : []).map(async (product) => {
           try {
             const stockResp = await InventoryService.getStockByProduct(product.id);
             const batches = stockResp?.data ?? stockResp ?? [];
@@ -32,7 +39,7 @@ export default function StockByProduct() {
               allBatches.push({ ...b, productId: product.id, productName: product.name });
             });
           } catch (err) {
-            console.warn(`No stock for ${product.name}`, err);
+            console.warn(`No stock for ${product?.name}`, err);
           }
         })
       );
@@ -45,7 +52,7 @@ export default function StockByProduct() {
         const key = `${productId}::${batchNumber ?? "NO_BATCH"}`;
 
         const qty = Number(b.quantity ?? 0);
-        const cost = b.costPrice != null ? (Number(b.costPrice) ): 0;
+        const cost = b.costPrice != null ? Number(b.costPrice) : 0;
 
         if (!mergedMap[key]) {
           mergedMap[key] = {
@@ -62,7 +69,7 @@ export default function StockByProduct() {
         } else {
           const m = mergedMap[key];
           const totalQty = (m.quantity || 0) + qty;
-          const totalCost = m.costPrice * m.quantity + cost * qty;
+          const totalCost = (m.costPrice || 0) * (m.quantity || 0) + cost * qty;
           m.quantity = totalQty;
           m.costPrice = totalQty > 0 ? totalCost / totalQty : m.costPrice;
           if (b.expiryDate || b.expiry) {
@@ -97,14 +104,32 @@ export default function StockByProduct() {
     }
   }
 
-  const filteredRows = rows.filter((r) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      String(r.productName ?? "").toLowerCase().includes(q) ||
-      String(r.batchNumber ?? "").toLowerCase().includes(q)
-    );
-  });
+  // filter rows by search
+  const filteredRows = useMemo(() => {
+    const q = (search || "").trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => {
+      return (
+        String(r.productName ?? "").toLowerCase().includes(q) ||
+        String(r.batchNumber ?? "").toLowerCase().includes(q) ||
+        String(r.location ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [rows, search]);
+
+  // pagination calculations
+  const total = filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  // clamp page to range
+  const safePage = Math.min(Math.max(0, page), Math.max(0, totalPages - 1));
+
+  const startIdx = safePage * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, total);
+  const pageRows = filteredRows.slice(startIdx, endIdx);
+
+  const handlePrev = () => setPage((p) => Math.max(0, p - 1));
+  const handleNext = () => setPage((p) => Math.min(totalPages - 1, p + 1));
+  const goToPage = (p) => setPage(Math.min(Math.max(0, p), totalPages - 1));
 
   return (
     <div className="dashboard-page">
@@ -120,7 +145,7 @@ export default function StockByProduct() {
             <input
               type="text"
               className="search-input"
-              placeholder="Search by product or batch..."
+              placeholder="Search by product, batch or location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -152,15 +177,15 @@ export default function StockByProduct() {
                       Loading…
                     </td>
                   </tr>
-                ) : filteredRows.length === 0 ? (
+                ) : total === 0 ? (
                   <tr>
                     <td colSpan="7" className="empty-state">
                       No batches found.
                     </td>
                   </tr>
                 ) : (
-                  filteredRows.map((r, idx) => (
-                    <tr key={r.key || `${idx}`}>
+                  pageRows.map((r, idx) => (
+                    <tr key={r.key || `${startIdx + idx}`}>
                       <td style={{ textAlign: "center" }}>{r.productName ?? "-"}</td>
                       <td style={{ textAlign: "center" }}>{r.batchNumber ?? "-"}</td>
                       <td style={{ textAlign: "center" }}>{r.quantity ?? "-"}</td>
@@ -177,6 +202,61 @@ export default function StockByProduct() {
                 )}
               </tbody>
             </table>
+
+            {/* pagination controls */}
+            {total > PAGE_SIZE && (
+              <div
+                className="card-footer"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginTop: 12,
+                }}
+              >
+                <div className="results">
+                  Showing {total === 0 ? 0 : startIdx + 1} to {endIdx} of {total} results
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button onClick={handlePrev} disabled={safePage === 0} className="btn">
+                    Prev
+                  </button>
+
+                  {/* page numbers - show up to 7 page buttons centered around current page */}
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {Array.from({ length: totalPages }).map((_, i) => {
+                      // show a limited range to avoid a huge pagination bar
+                      const showAll = totalPages <= 7;
+                      const start = Math.max(0, safePage - 3);
+                      const end = Math.min(totalPages, start + 7);
+                      if (!showAll && (i < start || i >= end)) return null;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => goToPage(i)}
+                          className={`btn ${i === safePage ? "active" : ""}`}
+                          style={{
+                            minWidth: 36,
+                            padding: "6px 8px",
+                            borderRadius: 4,
+                            background: i === safePage ? "#1565c0" : undefined,
+                            color: i === safePage ? "#fff" : undefined,
+                            border: "1px solid #e5e7eb",
+                          }}
+                        >
+                          {i + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button onClick={handleNext} disabled={safePage >= totalPages - 1} className="btn">
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </main>
