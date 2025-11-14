@@ -1,4 +1,4 @@
-﻿// src/components/KPI.jsx
+// src/components/KPI.jsx
 import React from "react";
 export default function KPI({ title, value }) {
   return (

@@ -1,4 +1,4 @@
-﻿// src/pages/sales/SalesList.jsx
+// src/pages/sales/SalesList.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import SalesService from "../../services/SalesService";
 import Sidebar from "../../components/Sidebar";

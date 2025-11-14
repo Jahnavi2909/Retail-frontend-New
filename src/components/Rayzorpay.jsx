@@ -1,4 +1,4 @@
-﻿// src/components/RazorPay.jsx
+// src/components/RazorPay.jsx
 import React from "react";
 import Cookies from "js-cookie";
 

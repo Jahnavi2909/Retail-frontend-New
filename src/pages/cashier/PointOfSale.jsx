@@ -1,4 +1,4 @@
-﻿// src/pages/cashier/PointOfSale.jsx
+// src/pages/cashier/PointOfSale.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";

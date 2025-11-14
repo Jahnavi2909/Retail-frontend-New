@@ -1,4 +1,4 @@
-﻿// src/components/PublicOnlyRoute.jsx
+// src/components/PublicOnlyRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
 import AuthService from "../services/AuthService";

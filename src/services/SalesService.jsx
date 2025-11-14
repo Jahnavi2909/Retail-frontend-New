@@ -1,4 +1,4 @@
-﻿// src/services/SalesService.js
+// src/services/SalesService.js
 import Cookies from "js-cookie";
 import api from "./Api";
 

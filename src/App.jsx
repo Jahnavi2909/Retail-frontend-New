@@ -1,4 +1,4 @@
-﻿// src/App.jsx
+// src/App.jsx
 import './App.css';
 import { Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";

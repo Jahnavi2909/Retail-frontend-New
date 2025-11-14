@@ -1,4 +1,4 @@
-﻿// src/services/AuthService.js
+// src/services/AuthService.js
 import { Navigate } from "react-router-dom";
 import api from "./Api";
 import Cookies from "js-cookie";

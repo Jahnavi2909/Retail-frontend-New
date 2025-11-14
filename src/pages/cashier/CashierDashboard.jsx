@@ -1,4 +1,4 @@
-﻿// src/pages/CashierDashboard.jsx
+// src/pages/CashierDashboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/CashierDashboard.css";
 import "../../styles/SalePOS.css";

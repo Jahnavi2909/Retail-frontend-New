@@ -1,4 +1,4 @@
-﻿// src/pages/products/ProductList.jsx
+// src/pages/products/ProductList.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";

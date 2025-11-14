@@ -1,4 +1,4 @@
-﻿// src/pages/suppliers/Suppliers.jsx
+// src/pages/suppliers/Suppliers.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/Suppliers.css";
 import { NavLink } from "react-router-dom";

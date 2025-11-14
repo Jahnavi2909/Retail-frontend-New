@@ -1,4 +1,4 @@
-﻿// src/pages/cashier/SalesReports.jsx
+// src/pages/cashier/SalesReports.jsx
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import SalesService from "../../services/SalesService";

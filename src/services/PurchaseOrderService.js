@@ -1,4 +1,4 @@
-﻿import api from "./Api"; // Make sure api.js exports a configured axios instance
+import api from "./Api"; // Make sure api.js exports a configured axios instance
 import Cookies from "js-cookie";
 
 export async function getPurchaseOrders() {

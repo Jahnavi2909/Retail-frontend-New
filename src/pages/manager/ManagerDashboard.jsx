@@ -1,4 +1,4 @@
-﻿// src/pages/manager/ManagerDashboard.jsx
+// src/pages/manager/ManagerDashboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/ManagerDashboard.css";
 import { NavLink } from "react-router-dom";

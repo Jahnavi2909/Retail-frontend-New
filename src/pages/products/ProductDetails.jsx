@@ -1,4 +1,4 @@
-﻿// src/pages/products/ProductDetails.jsx
+// src/pages/products/ProductDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";

@@ -1,4 +1,4 @@
-﻿// src/components/AdminPanel.jsx
+// src/components/AdminPanel.jsx
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import "./adminpanel.css"; // we will create styles below

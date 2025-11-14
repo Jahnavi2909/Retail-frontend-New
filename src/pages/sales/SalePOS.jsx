@@ -1,4 +1,4 @@
-﻿// src/pages/sales/SalePOS.jsx
+// src/pages/sales/SalePOS.jsx
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/SalePOS.css";
 import { Scanner } from "@yudiel/react-qr-scanner";

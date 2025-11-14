@@ -1,4 +1,4 @@
-﻿// src/components/LogoSmall.jsx
+// src/components/LogoSmall.jsx
 import React from "react";
 
 export default function LogoSmall({ text = "SM" }) {

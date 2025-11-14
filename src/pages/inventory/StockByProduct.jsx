@@ -1,4 +1,4 @@
-﻿// src/pages/inventory/StockByProduct.jsx
+// src/pages/inventory/StockByProduct.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";

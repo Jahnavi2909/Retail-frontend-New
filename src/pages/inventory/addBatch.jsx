@@ -1,4 +1,4 @@
-﻿// src/pages/inventory/AddBatch.jsx
+// src/pages/inventory/AddBatch.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";

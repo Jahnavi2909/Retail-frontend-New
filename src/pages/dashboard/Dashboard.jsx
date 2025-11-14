@@ -1,4 +1,4 @@
-﻿// src/pages/dashboard/Dashboard.jsx
+// src/pages/dashboard/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import AdminPanel from "../../components/AdminPanel";
