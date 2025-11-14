@@ -4,6 +4,7 @@ import Sidebar from "../../components/Sidebar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../../styles.css";
 import * as ProductsService from "../../services/ProductsService";
+import RazorPay from "../../components/Rayzorpay";
 
 const CART_STORAGE_KEY = "pos_cart_v1";
 
@@ -226,9 +227,9 @@ export default function PointOfSale() {
                 <button className="btn btn-primary" onClick={() => {
                   if (cart.length === 0) { alert("Cart is empty"); return; }
                   // TODO: call backend sale finalization endpoint here
-                  alert(`Sale completed. Total: $${total.toFixed(2)}`);
+                  <RazorPay />
                   clearCart();
-                }}>Finalize Sale</button>
+                }}>Checkout</button>
               </div>
             </div>
           </aside>

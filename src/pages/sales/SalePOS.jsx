@@ -1,39 +1,18 @@
 // src/pages/sales/SalePOS.jsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "../../styles/SalePOS.css";
 import { Scanner } from "@yudiel/react-qr-scanner";
-import { Search, ShoppingCart, Trash2, LogOut, CreditCard, QrCode } from "lucide-react";
+import { Search, ShoppingCart, Trash2, LogOut } from "lucide-react";
 import { getProducts, searchProducts } from "../../services/ProductsService";
 import SalesService from "../../services/SalesService";
 import AuthService from "../../services/AuthService";
 import { useNavigate } from "react-router-dom";
-
-/* Helpers */
-function luhnCheck(cardNumber = "") {
-  const digits = String(cardNumber).replace(/\D/g, "");
-  let sum = 0;
-  let toggle = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let d = parseInt(digits[i], 10);
-    if (toggle) {
-      d = d * 2;
-      if (d > 9) d -= 9;
-    }
-    sum += d;
-    toggle = !toggle;
-  }
-  return digits.length > 0 && sum % 10 === 0;
-}
-function maskCard(number = "") {
-  const digits = String(number).replace(/\D/g, "");
-  if (digits.length <= 4) return digits;
-  return "**** **** **** " + digits.slice(-4);
-}
+import RazorPay from "../../components/Rayzorpay";
 
 export default function SalePOS() {
   const navigate = useNavigate();
 
-  // products
+  // product states
   const [products, setProducts] = useState([]);
   const [fallbackProducts, setFallbackProducts] = useState([]);
 
@@ -42,35 +21,20 @@ export default function SalePOS() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState("");
 
-  // cart + totals
+  // cart
   const [cart, setCart] = useState([]);
   const [discount, setDiscount] = useState(0);
-  // store paymentMode as UPPERCASE keys to simplify checks
-  const [paymentMode, setPaymentMode] = useState("CASH"); // "CASH" | "UPI" | "CARD"
-
-  // cashier id (numeric)
-  const [cashierIdInput, setCashierIdInput] = useState("");
-
-  // UPI
-  const [upiId, setUpiId] = useState("");
-  const [upiError, setUpiError] = useState("");
-  const [upiRefreshKey, setUpiRefreshKey] = useState(0);
-
-  // Card
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardHolder, setCardHolder] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardError, setCardError] = useState("");
-
-  // submission
   const [loadingFinalize, setLoadingFinalize] = useState(false);
 
-  // QR scanner toggles (off by default)
+  // cashier
+  const [cashierIdInput, setCashierIdInput] = useState("");
+
+  // scanner
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const lastScannedRef = useRef(null);
   const scanCooldownRef = useRef(null);
 
-  // load fallback products (small set) on mount
+  // load initial products
   useEffect(() => {
     (async () => {
       try {
@@ -88,7 +52,7 @@ export default function SalePOS() {
     })();
   }, []);
 
-  // search
+  // search products
   const performProductSearch = async (term) => {
     const q = (term || "").toString().trim();
     setSearchError("");
@@ -97,22 +61,17 @@ export default function SalePOS() {
       const resp = await searchProducts({ name: q, sku: q, page: 0, size: 50 });
       const list = Array.isArray(resp) ? resp : resp?.content ?? resp?.data ?? [];
       setProducts(Array.isArray(list) ? list : []);
-      if (!list || list.length === 0) {
-        setSearchError("No products found.");
-      }
+      if (!list || list.length === 0) setSearchError("No products found.");
     } catch (err) {
       console.error("searchProducts error:", err);
       setSearchError("Search failed — showing local results.");
       const arr = fallbackProducts.length ? fallbackProducts : [];
       const ql = q.toLowerCase();
-      const filtered = (arr || []).filter((item) => {
-        if (!item) return false;
-        return (
-          String(item.name || "").toLowerCase().includes(ql) ||
-          String(item.sku || "").toLowerCase().includes(ql) ||
-          String(item.category || "").toLowerCase().includes(ql)
-        );
-      });
+      const filtered = arr.filter((item) =>
+        [item.name, item.sku, item.category].some((f) =>
+          String(f || "").toLowerCase().includes(ql)
+        )
+      );
       setProducts(filtered);
     } finally {
       setSearchLoading(false);
@@ -122,9 +81,10 @@ export default function SalePOS() {
   const onSearchKeyDown = (e) => {
     if (e.key === "Enter") performProductSearch(searchTerm);
   };
+
   const onSearchClick = () => performProductSearch(searchTerm);
 
-  // cart operations
+  // cart actions
   const handleAddToCart = (product) => {
     if (!product) return;
     setCart((prev) => {
@@ -140,94 +100,28 @@ export default function SalePOS() {
   };
 
   const handleRemove = (id) => setCart((prev) => prev.filter((c) => c.id !== id));
+
   const handleQtyChange = (id, qtyRaw) => {
     const qty = Math.max(1, Math.floor(Number(qtyRaw) || 1));
     setCart((prev) => prev.map((c) => (c.id === id ? { ...c, qty } : c)));
   };
 
-  // totals
-  const subtotal = cart.reduce((s, i) => s + Number(i.unitPrice || 0) * Number(i.qty || 0), 0);
-  const taxTotal = cart.reduce(
-    (s, i) => s + (Number(i.unitPrice || 0) * Number(i.qty || 0) * (Number(i.taxRate || 0) / 100)),
-    0
-  );
-  const discountTotal = (subtotal * Number(discount || 0)) / 100;
+  const subtotal = cart.reduce((s, i) => s + i.unitPrice * i.qty, 0);
+  const taxTotal = cart.reduce((s, i) => s + i.unitPrice * i.qty * (i.taxRate / 100), 0);
+  const discountTotal = (subtotal * discount) / 100;
   const total = +(subtotal + taxTotal - discountTotal).toFixed(2);
 
-  // validations
   const validateCashierId = () => {
     const v = cashierIdInput === "" ? null : Number(cashierIdInput);
     return Number.isInteger(v) && v > 0;
   };
 
-  const validateUpi = (id) => {
-    if (!id || String(id).trim().length < 3) return false;
-    if (/@/.test(id)) return true;
-    const digits = String(id).replace(/\D/g, "");
-    return digits.length >= 10 && digits.length <= 20;
-  };
-
-  const upiPayloadString = useMemo(() => {
-    const vpa = String(upiId || "").trim();
-    if (!vpa) return "";
-    const pa = encodeURIComponent(vpa);
-    const pn = encodeURIComponent("SmartRetails");
-    const am = encodeURIComponent(String(total.toFixed(2)));
-    const cu = "INR";
-    return `upi://pay?pa=${pa}&pn=${pn}&am=${am}&cu=${cu}`;
-  }, [upiId, total]);
-
-  const upiQrSrc = useMemo(() => {
-    if (!upiPayloadString) return "";
-    const data = encodeURIComponent(upiPayloadString);
-    const cb = upiRefreshKey || 0;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data}&t=${cb}`;
-  }, [upiPayloadString, upiRefreshKey]);
-
-  const validateCardDetails = () => {
-    const num = String(cardNumber).replace(/\s+/g, "");
-    if (!luhnCheck(num)) {
-      setCardError("Invalid card number (Luhn check failed).");
-      return false;
-    }
-    let mm, yy;
-    if (cardExpiry.includes("/")) {
-      [mm, yy] = cardExpiry.split("/");
-      if (yy.length === 2) yy = "20" + yy;
-    } else if (cardExpiry.includes("-")) {
-      [yy, mm] = cardExpiry.split("-");
-    } else {
-      setCardError("Invalid expiry format.");
-      return false;
-    }
-    const mmN = Number(mm);
-    const yyN = Number(yy);
-    if (!(mmN >= 1 && mmN <= 12)) {
-      setCardError("Invalid expiry month.");
-      return false;
-    }
-    const exp = new Date(yyN, mmN, 0, 23, 59, 59);
-    if (exp < new Date()) {
-      setCardError("Card expired.");
-      return false;
-    }
-    setCardError("");
-    return true;
-  };
-
   const handleCancel = () => {
     setCart([]);
     setDiscount(0);
-    setPaymentMode("CASH");
-    setUpiId("");
-    setUpiError("");
-    setCardNumber("");
-    setCardHolder("");
-    setCardExpiry("");
-    setCardError("");
   };
 
-  // scanned-code -> add to cart
+  // QR scanner
   const handleScannedCode = async (raw) => {
     if (!raw) return;
     const code = String(raw).trim();
@@ -238,82 +132,59 @@ export default function SalePOS() {
     try {
       const resp = await searchProducts({ name: code, sku: code, page: 0, size: 10 });
       const list = Array.isArray(resp) ? resp : resp?.content ?? resp?.data ?? [];
-      let product = Array.isArray(list) && list.length ? list[0] : null;
+      let product = list.length ? list[0] : null;
       if (!product) {
-        const found = (fallbackProducts || []).find(
-          (p) => String(p.sku || "").toLowerCase() === code.toLowerCase() || String(p.id || "").toLowerCase() === code.toLowerCase()
+        product = fallbackProducts.find(
+          (p) =>
+            String(p.sku || "").toLowerCase() === code.toLowerCase() ||
+            String(p.id || "").toLowerCase() === code.toLowerCase()
         );
-        product = found || null;
       }
       if (product) handleAddToCart(product);
     } catch (err) {
       console.error("scan processing error", err);
     } finally {
-      scanCooldownRef.current = setTimeout(() => {
-        lastScannedRef.current = null;
-      }, 900);
+      scanCooldownRef.current = setTimeout(() => (lastScannedRef.current = null), 900);
     }
   };
 
-  // scanner callbacks
-  const onQrScan = (data) => {
-    if (data) handleScannedCode(data);
-  };
-  const onQrError = (err) => {
-    console.warn("QR reader error:", err);
-  };
-
-  // finalize sale: NOTE -> do NOT include paymentDetails
-  const handleFinalizeSale = async () => {
+  // finalize sale after successful payment
+  const handlePaymentSuccess = async () => {
     if (!validateCashierId()) {
-      alert("Please enter a valid numeric Cashier ID (positive integer) in the sidebar.");
+      alert("Please enter a valid Cashier ID before proceeding.");
       return;
     }
     if (cart.length === 0) {
-      alert("Add at least one product to cart.");
+      alert("Add at least one product to cart before finalizing sale.");
       return;
-    }
-    // keep client-side validation but do not send sensitive details
-    if (paymentMode === "UPI") {
-      if (!validateUpi(upiId)) {
-        setUpiError("Invalid UPI ID. Example: username@bank or 10-20 digits.");
-        return;
-      }
-      setUpiError("");
-    }
-    if (paymentMode === "CARD") {
-      if (!validateCardDetails()) return;
     }
 
     const itemsPayload = cart.map((c) => ({
       productId: Number(c.id),
       quantity: Number(c.qty),
-      unitPrice: Number(c.unitPrice || 0),
-      taxRate: Number(c.taxRate || 0),
+      unitPrice: Number(c.unitPrice),
+      taxRate: Number(c.taxRate),
     }));
 
-    // *** Payment details intentionally omitted for privacy/security ***
     const payload = {
       cashierId: Number(cashierIdInput),
       total: Number(total.toFixed(2)),
       taxTotal: Number(taxTotal.toFixed(2)),
       discountTotal: Number(discountTotal.toFixed(2)),
-      paymentMode: String(paymentMode).toUpperCase(),
+      paymentMode: "RAZORPAY",
       createdAt: new Date().toISOString(),
       items: itemsPayload,
-      // paymentDetails: <REMOVED>
     };
 
     try {
       setLoadingFinalize(true);
       const res = await SalesService.createSale(payload);
       const saleId = res?.id ?? res?.saleId ?? res?.data?.id ?? null;
-      alert(`✅ Sale finalized successfully${saleId ? ` (id: ${saleId})` : ""}`);
+      alert(`✅ Sale created successfully${saleId ? ` (id: ${saleId})` : ""}`);
       handleCancel();
     } catch (err) {
-      console.error("Finalize sale error:", err);
-      const message = err?.response?.data?.message ?? err?.message ?? "Failed to finalize sale.";
-      alert(`❌ ${message}`);
+      console.error("Sale creation error:", err);
+      alert("❌ Failed to create sale record after payment.");
     } finally {
       setLoadingFinalize(false);
     }
@@ -339,12 +210,8 @@ export default function SalePOS() {
             className="input-small"
             placeholder="Enter cashier id"
             value={cashierIdInput}
-            onChange={(e) => {
-              const v = e.target.value;
-              setCashierIdInput(v === "" ? "" : Number(v));
-            }}
+            onChange={(e) => setCashierIdInput(e.target.value)}
             min="1"
-            step="1"
           />
         </div>
 
@@ -352,7 +219,10 @@ export default function SalePOS() {
           <li onClick={() => navigate("/products")} className="nav-item">
             📦 Products
           </li>
-          <li onClick={() => navigate("/pos")} className={`nav-item ${window.location.pathname === "/pos" ? "active" : ""}`}>
+          <li
+            onClick={() => navigate("/pos")}
+            className={`nav-item ${window.location.pathname === "/pos" ? "active" : ""}`}
+          >
             🧾 Billing / POS
           </li>
         </ul>
@@ -361,23 +231,17 @@ export default function SalePOS() {
           <LogOut size={14} /> Logout
         </button>
 
-        {/* QR controls */}
         <div style={{ marginTop: 12 }}>
-          <button onClick={() => setCameraEnabled((s) => !s)} className="btn" style={{ display: "block", width: "100%" }}>
+          <button onClick={() => setCameraEnabled((s) => !s)} className="btn" style={{ width: "100%" }}>
             {cameraEnabled ? "Disable Camera Scanner" : "Enable Camera Scanner"}
           </button>
-
           {cameraEnabled && (
             <div style={{ marginTop: 8 }}>
               <small className="muted">Point the camera at a barcode/QR to auto-add product.</small>
               <div style={{ marginTop: 8 }}>
                 <Scanner
-                  onResult={(text) => {
-                    if (text) onQrScan(text);
-                  }}
-                  onError={(err) => {
-                    onQrError?.(err);
-                  }}
+                  onResult={(text) => text && handleScannedCode(text)}
+                  onError={(err) => console.warn("QR error", err)}
                   components={{ finder: false }}
                   style={{ width: "100%" }}
                 />
@@ -394,12 +258,12 @@ export default function SalePOS() {
         </div>
 
         <div className="pos-content">
-          {/* Product Search */}
+          {/* Search */}
           <div className="product-section">
             <div className="search-bar pos-search">
               <input
                 type="text"
-                placeholder="Search product by name, SKU or barcode and press Enter"
+                placeholder="Search product by name, SKU or barcode"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={onSearchKeyDown}
@@ -423,7 +287,7 @@ export default function SalePOS() {
                       <div className="product-sub">{p.sku ?? p.id ?? p.productId} • {p.category ?? "Uncategorized"}</div>
                     </div>
                     <div className="product-card-bottom">
-                      <div className="product-price">₹{(Number(p.unitPrice ?? p.price ?? 0)).toFixed(2)}</div>
+                      <div className="product-price">₹{(p.unitPrice ?? p.price ?? 0).toFixed(2)}</div>
                       <button onClick={() => handleAddToCart(p)} className="btn add-btn">+ Add</button>
                     </div>
                   </div>
@@ -432,7 +296,7 @@ export default function SalePOS() {
             </div>
           </div>
 
-          {/* Cart */}
+          {/* Cart Section */}
           <div className="cart-section">
             <div className="cart-header">
               <ShoppingCart size={18} />
@@ -455,23 +319,30 @@ export default function SalePOS() {
                   <tr key={item.id}>
                     <td>{item.name}</td>
                     <td>
-                      <input type="number" value={item.qty} min="1" onChange={(e) => handleQtyChange(item.id, e.target.value)} />
+                      <input
+                        type="number"
+                        value={item.qty}
+                        min="1"
+                        onChange={(e) => handleQtyChange(item.id, e.target.value)}
+                      />
                     </td>
-                    <td>₹{Number(item.unitPrice || 0).toFixed(2)}</td>
-                    <td>{Number(item.taxRate || 0).toFixed(2)}%</td>
+                    <td>₹{item.unitPrice.toFixed(2)}</td>
+                    <td>{item.taxRate.toFixed(2)}%</td>
                     <td>
-                      ₹{(Number(item.unitPrice || 0) * Number(item.qty || 0) +
-                        (Number(item.unitPrice || 0) * Number(item.qty || 0) * (Number(item.taxRate || 0) / 100))
-                      ).toFixed(2)}
+                      ₹{(item.unitPrice * item.qty * (1 + item.taxRate / 100)).toFixed(2)}
                     </td>
                     <td>
-                      <button className="remove-btn" onClick={() => handleRemove(item.id)}><Trash2 size={16} /></button>
+                      <button className="remove-btn" onClick={() => handleRemove(item.id)}>
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
                 {cart.length === 0 && (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: "center", padding: 18 }}>Cart is empty</td>
+                    <td colSpan={6} style={{ textAlign: "center", padding: 18 }}>
+                      Cart is empty
+                    </td>
                   </tr>
                 )}
               </tbody>
@@ -484,99 +355,26 @@ export default function SalePOS() {
               <h3>Total: ₹{total.toFixed(2)}</h3>
             </div>
 
-            {/* Payment controls */}
-            <div className="discount-payment" style={{ display: "flex", gap: 12, alignItems: "flex-end", marginTop: 12 }}>
+            <div className="discount-payment" style={{ marginTop: 12 }}>
               <div className="discount-block">
                 <label>Discount (%)</label>
-                <input type="number" placeholder="Enter discount " value={discount} onChange={(e) => setDiscount(Number(e.target.value || 0))} />
-              </div>
-
-              <div>
-                <label>Payment Mode</label>
-                <select value={paymentMode} onChange={(e) => setPaymentMode(String(e.target.value).toUpperCase())}>
-                  <option value="CASH">Cash</option>
-                  <option value="CARD">Card</option>
-                  <option value="UPI">UPI</option>
-                </select>
+                <input
+                  type="number"
+                  placeholder="Enter discount"
+                  value={discount}
+                  onChange={(e) => setDiscount(Number(e.target.value || 0))}
+                />
               </div>
             </div>
 
-            {/* UPI */}
-            {paymentMode === "UPI" && (
-              <div className="payment-card" style={{ marginTop: 12 }}>
-                <div className="payment-card-head"><QrCode size={16} /> <strong>UPI Payment</strong></div>
-
-                <div className="form-row">
-                  <label>UPI ID (VPA)</label>
-                  <input type="text" placeholder="example@bank" value={upiId} onChange={(e) => { setUpiId(e.target.value); setUpiError(""); }} />
-                  {upiError && <div className="field-error">{upiError}</div>}
-                </div>
-
-                <div className="upi-qr" style={{ display: "flex", gap: 16, alignItems: "center", marginTop: 8 }}>
-                  <div>
-                    <div className="muted">Scan to pay</div>
-                    <div className="big-amount">₹{total.toFixed(2)}</div>
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                    {!upiPayloadString && <div className="muted">Enter a valid UPI ID to generate QR</div>}
-                    {upiPayloadString && !validateUpi(upiId) && <div className="field-error">Invalid UPI ID format — example@bank</div>}
-                    {upiPayloadString && validateUpi(upiId) && (
-                      <>
-                        <img alt="UPI QR" src={upiQrSrc} className="qr-image" onError={() => setUpiRefreshKey((k) => k + 1)} />
-                        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-                          <button className="btn btn-ghost" onClick={() => { navigator.clipboard?.writeText(upiPayloadString)?.then(() => alert("UPI link copied"))?.catch(() => alert("Copy failed")); }}>
-                            Copy link
-                          </button>
-                          <a className="btn btn-primary" href={upiPayloadString} target="_blank" rel="noreferrer">Open</a>
-                          <button className="btn" onClick={() => setUpiRefreshKey((k) => k + 1)} title="Refresh QR">Refresh</button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Card */}
-            {paymentMode === "CARD" && (
-              <div className="payment-card" style={{ marginTop: 12 }}>
-                <div className="payment-card-head"><CreditCard size={16} /> <strong>Card Payment</strong></div>
-
-                <div className="form-row">
-                  <label>Card Number</label>
-                  <input type="text" placeholder="XXXX XXXX XXXX 1234" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} />
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                  <div style={{ flex: 1 }}>
-                    <label>Card Holder</label>
-                    <input type="text" placeholder="Name on card" value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} />
-                  </div>
-                  <div style={{ width: 140 }}>
-                    <label>Expiry (MM/YY or MM/YYYY)</label>
-                    <input type="text" placeholder="MM/YY" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} />
-                  </div>
-                </div>
-
-                {cardError && <div className="field-error">{cardError}</div>}
-
-                <div className="card-preview" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
-                  <div className="card-preview-block">
-                    <div className="card-preview-name">{cardHolder || "Card Holder"}</div>
-                    <div className="card-preview-num">{maskCard(cardNumber) || "XXXX XXXX XXXX XXXX"}</div>
-                    <div className="card-preview-exp">{cardExpiry || "MM/YY"}</div>
-                  </div>
-                  <div className="big-amount">₹{total.toFixed(2)}</div>
-                </div>
-              </div>
-            )}
-
-            <div className="cart-actions" style={{ marginTop: 16 }}>
-              <button className="cancel-btn" onClick={handleCancel} disabled={loadingFinalize}>Cancel</button>
-              <button className="finalize-btn" onClick={handleFinalizeSale} disabled={loadingFinalize}>
-                {loadingFinalize ? "Processing…" : "Finalize Sale"}
-              </button>
+            {/* ✅ Razorpay Integration */}
+            <div style={{ marginTop: 20 }}>
+              <RazorPay
+                amount={total}
+                onSuccess={handlePaymentSuccess}
+                validateCashierId={validateCashierId}
+                onCancel={handleCancel}
+              />
             </div>
           </div>
         </div>

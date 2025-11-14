@@ -2,7 +2,8 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-export const API_BASE = "https://d1x2sux8i7gb9h.cloudfront.net/api"; 
+// export const API_BASE = "https://d1x2sux8i7gb9h.cloudfront.net/api"; 
+export const API_BASE = "https://smartinventorysystemsbyvinodmudavath.onrender.com/api"; 
 
 const api = axios.create({
   baseURL:
