@@ -1,4 +1,4 @@
-// src/components/Navbar.jsx
+﻿// src/components/Navbar.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import LogoSmall from "./LogoSmall";
@@ -138,11 +138,11 @@ export default function Navbar() {
               transition: "background 0.2s ease",
             }}
           >
-            👋 Hi,{" "}
+            ðŸ‘‹ Hi,{" "}
             <span style={{ fontWeight: 600 }}>
               {displayUser.username || displayUser.email || "User"}
             </span>
-            <span style={{ fontSize: 12 }}>▾</span>
+            <span style={{ fontSize: 12 }}>â–¾</span>
 
             {/* Dropdown */}
             {menuOpen && (
@@ -181,7 +181,7 @@ export default function Navbar() {
                     (e.target.style.background = "transparent")
                   }
                 >
-                  🚪 Logout
+                  ðŸšª Logout
                 </button>
               </div>
             )}

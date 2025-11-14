@@ -1,4 +1,4 @@
-// src/pages/auth/UserForm.jsx
+﻿// src/pages/auth/UserForm.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -89,7 +89,7 @@ export default function UserForm() {
         <div className="page-header"><h2>{id ? "Edit User" : "Create User"}</h2></div>
 
         <div className="card form-card">
-          {loading ? <div className="loading">Loading…</div> : (
+          {loading ? <div className="loading">Loadingâ€¦</div> : (
             <form className="product-form" onSubmit={onSubmit}>
               <div className="form-grid">
                 <label>
@@ -122,7 +122,7 @@ export default function UserForm() {
 
               <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end", gap: 10 }}>
                 <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Back</button>
-                <button type="submit" className="btn-primary" disabled={saving}>{saving ? "Saving…" : (id ? "Save Changes" : "Create User")}</button>
+                <button type="submit" className="btn-primary" disabled={saving}>{saving ? "Savingâ€¦" : (id ? "Save Changes" : "Create User")}</button>
               </div>
             </form>
           )}

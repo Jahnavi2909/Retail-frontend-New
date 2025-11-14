@@ -1,4 +1,4 @@
-// src/pages/purchase/PurchaseOrders.jsx
+﻿// src/pages/purchase/PurchaseOrders.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/PurchaseOrders.css";
 import { NavLink } from "react-router-dom";
@@ -217,7 +217,7 @@ const PurchaseOrders = () => {
         <div className="header">
           <h1>Purchase Orders</h1>
           <button className="new-order-btn" onClick={() => setShowForm(true)}>
-            ➕ New Order
+            âž• New Order
           </button>
         </div>
 
@@ -264,10 +264,10 @@ const PurchaseOrders = () => {
                   </td>
                   <td>
                     <button className="edit-btn" onClick={() => handleEdit(order)}>
-                      ✏️ Edit
+                      âœï¸ Edit
                     </button>
                     <button className="delete-btn" onClick={() => handleDelete(order.id)}>
-                      🗑 Delete
+                      ðŸ—‘ Delete
                     </button>
                   </td>
                 </tr>

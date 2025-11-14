@@ -1,4 +1,4 @@
-// src/pages/cashier/SalesReports.jsx
+﻿// src/pages/cashier/SalesReports.jsx
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Sidebar";
 import SalesService from "../../services/SalesService";
@@ -97,7 +97,7 @@ export default function SalesReports() {
 
         <div className="table-card" style={{ marginTop: 12 }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: "center" }}>Loading sales…</div>
+            <div style={{ padding: 24, textAlign: "center" }}>Loading salesâ€¦</div>
           ) : error ? (
             <div style={{ padding: 24, color: "var(--danger, #b00020)" }}>Error: {error}</div>
           ) : sales.length === 0 ? (
@@ -118,7 +118,7 @@ export default function SalesReports() {
                 <tbody>
                   {sales.map((s) => {
                     // normalize fields step-by-step to avoid mixing ?? with || or &&
-                    const id = s.id ?? s.saleId ?? s.reference ?? "—";
+                    const id = s.id ?? s.saleId ?? s.reference ?? "â€”";
                     const date = formatDate(s.date ?? s.createdAt ?? s.created_at);
 
                     // compute cashier safely
@@ -131,8 +131,8 @@ export default function SalesReports() {
                     const items = Array.isArray(s.items) ? s.items.length : ((s.itemsCount ?? s.items) || "-");
 
                     // amounts: display currency-friendly strings (adjust currency symbol as needed)
-                    const net = typeof s.net === "number" ? `₹${s.net.toFixed(2)}` : (s.net ?? s.total ?? "-");
-                    const tax = typeof s.tax === "number" ? `₹${s.tax.toFixed(2)}` : (s.tax ?? "-");
+                    const net = typeof s.net === "number" ? `â‚¹${s.net.toFixed(2)}` : (s.net ?? s.total ?? "-");
+                    const tax = typeof s.tax === "number" ? `â‚¹${s.tax.toFixed(2)}` : (s.tax ?? "-");
 
                     return (
                       <tr key={id}>

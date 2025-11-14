@@ -1,4 +1,4 @@
-// src/pages/inventory/AddBatch.jsx
+﻿// src/pages/inventory/AddBatch.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -219,7 +219,7 @@ export default function AddBatch() {
               </label>
 
               <label className="block">
-                <div className="text-sm font-medium mb-1">Cost Price (₹)</div>
+                <div className="text-sm font-medium mb-1">Cost Price (â‚¹)</div>
                 {/* costPrice is read-only and derived from selected product */}
                 <input
                   type="number"
@@ -321,7 +321,7 @@ export default function AddBatch() {
                   <div className="text-xs text-gray-600 mt-0.5">{toast.message}</div>
                 </div>
                 <button onClick={() => setToast((s) => ({ ...s, visible: false }))} className="text-gray-400 hover:text-gray-600">
-                  ✕
+                  âœ•
                 </button>
               </div>
             </div>

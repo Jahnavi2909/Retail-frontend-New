@@ -1,4 +1,4 @@
-// src/pages/manager/ManagerDashboard.jsx
+﻿// src/pages/manager/ManagerDashboard.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/ManagerDashboard.css";
 import { NavLink } from "react-router-dom";
@@ -169,7 +169,7 @@ const ManagerDashboard = () => {
       <div className="main-content">
         <header className="navbar">
           <h1>Manager Dashboard</h1>
-          <div className="user-icon">🔔</div>
+          <div className="user-icon">ðŸ””</div>
         </header>
 
         {error && <p className="error-message">{error}</p>}

@@ -1,4 +1,4 @@
-// src/pages/suppliers/Suppliers.jsx
+﻿// src/pages/suppliers/Suppliers.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/Suppliers.css";
 import { NavLink } from "react-router-dom";
@@ -205,7 +205,7 @@ const Suppliers = () => {
       <div className="main-content">
         <header className="navbar">
           <h1>Suppliers</h1>
-          <button className="add-btn" onClick={() => setShowForm(true)}>➕ Add Supplier</button>
+          <button className="add-btn" onClick={() => setShowForm(true)}>âž• Add Supplier</button>
         </header>
 
         {/* Search input */}
@@ -256,8 +256,8 @@ const Suppliers = () => {
                     <td>{supplier.address || "-"}</td>
                     <td>{supplier.isActive ? "Yes" : "No"}</td>
                     <td>
-                      <button className="edit-btn" onClick={() => handleEdit(supplier)}>✏ Edit</button>
-                      <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>🗑 Delete</button>
+                      <button className="edit-btn" onClick={() => handleEdit(supplier)}>âœ Edit</button>
+                      <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ðŸ—‘ Delete</button>
                     </td>
                   </tr>
                 ))

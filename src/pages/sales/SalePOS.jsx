@@ -1,4 +1,4 @@
-// src/pages/sales/SalePOS.jsx
+﻿// src/pages/sales/SalePOS.jsx
 import React, { useEffect, useRef, useState } from "react";
 import "../../styles/SalePOS.css";
 import { Scanner } from "@yudiel/react-qr-scanner";
@@ -64,7 +64,7 @@ export default function SalePOS() {
       if (!list || list.length === 0) setSearchError("No products found.");
     } catch (err) {
       console.error("searchProducts error:", err);
-      setSearchError("Search failed — showing local results.");
+      setSearchError("Search failed â€” showing local results.");
       const arr = fallbackProducts.length ? fallbackProducts : [];
       const ql = q.toLowerCase();
       const filtered = arr.filter((item) =>
@@ -180,11 +180,11 @@ export default function SalePOS() {
       setLoadingFinalize(true);
       const res = await SalesService.createSale(payload);
       const saleId = res?.id ?? res?.saleId ?? res?.data?.id ?? null;
-      alert(`✅ Sale created successfully${saleId ? ` (id: ${saleId})` : ""}`);
+      alert(`âœ… Sale created successfully${saleId ? ` (id: ${saleId})` : ""}`);
       handleCancel();
     } catch (err) {
       console.error("Sale creation error:", err);
-      alert("❌ Failed to create sale record after payment.");
+      alert("âŒ Failed to create sale record after payment.");
     } finally {
       setLoadingFinalize(false);
     }
@@ -217,13 +217,13 @@ export default function SalePOS() {
 
         <ul className="sidebar-nav">
           <li onClick={() => navigate("/products")} className="nav-item">
-            📦 Products
+            ðŸ“¦ Products
           </li>
           <li
             onClick={() => navigate("/pos")}
             className={`nav-item ${window.location.pathname === "/pos" ? "active" : ""}`}
           >
-            🧾 Billing / POS
+            ðŸ§¾ Billing / POS
           </li>
         </ul>
 
@@ -270,7 +270,7 @@ export default function SalePOS() {
                 className="search-input"
               />
               <button className="btn search-btn" onClick={onSearchClick} disabled={searchLoading}>
-                {searchLoading ? "Searching…" : <><Search size={14} /> Search</>}
+                {searchLoading ? "Searchingâ€¦" : <><Search size={14} /> Search</>}
               </button>
             </div>
 
@@ -284,10 +284,10 @@ export default function SalePOS() {
                   <div key={p.id ?? p.productId} className="product-card">
                     <div className="product-card-top">
                       <div className="product-title">{p.name}</div>
-                      <div className="product-sub">{p.sku ?? p.id ?? p.productId} • {p.category ?? "Uncategorized"}</div>
+                      <div className="product-sub">{p.sku ?? p.id ?? p.productId} â€¢ {p.category ?? "Uncategorized"}</div>
                     </div>
                     <div className="product-card-bottom">
-                      <div className="product-price">₹{(p.unitPrice ?? p.price ?? 0).toFixed(2)}</div>
+                      <div className="product-price">â‚¹{(p.unitPrice ?? p.price ?? 0).toFixed(2)}</div>
                       <button onClick={() => handleAddToCart(p)} className="btn add-btn">+ Add</button>
                     </div>
                   </div>
@@ -326,10 +326,10 @@ export default function SalePOS() {
                         onChange={(e) => handleQtyChange(item.id, e.target.value)}
                       />
                     </td>
-                    <td>₹{item.unitPrice.toFixed(2)}</td>
+                    <td>â‚¹{item.unitPrice.toFixed(2)}</td>
                     <td>{item.taxRate.toFixed(2)}%</td>
                     <td>
-                      ₹{(item.unitPrice * item.qty * (1 + item.taxRate / 100)).toFixed(2)}
+                      â‚¹{(item.unitPrice * item.qty * (1 + item.taxRate / 100)).toFixed(2)}
                     </td>
                     <td>
                       <button className="remove-btn" onClick={() => handleRemove(item.id)}>
@@ -349,10 +349,10 @@ export default function SalePOS() {
             </table>
 
             <div className="cart-summary">
-              <p>Subtotal: ₹{subtotal.toFixed(2)}</p>
-              <p>Tax Total: ₹{taxTotal.toFixed(2)}</p>
-              <p>Discount ({discount}%): -₹{discountTotal.toFixed(2)}</p>
-              <h3>Total: ₹{total.toFixed(2)}</h3>
+              <p>Subtotal: â‚¹{subtotal.toFixed(2)}</p>
+              <p>Tax Total: â‚¹{taxTotal.toFixed(2)}</p>
+              <p>Discount ({discount}%): -â‚¹{discountTotal.toFixed(2)}</p>
+              <h3>Total: â‚¹{total.toFixed(2)}</h3>
             </div>
 
             <div className="discount-payment" style={{ marginTop: 12 }}>
@@ -367,7 +367,7 @@ export default function SalePOS() {
               </div>
             </div>
 
-            {/* ✅ Razorpay Integration */}
+            {/* âœ… Razorpay Integration */}
             <div style={{ marginTop: 20 }}>
               <RazorPay
                 amount={total}

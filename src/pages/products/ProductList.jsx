@@ -1,4 +1,4 @@
-// src/pages/products/ProductList.jsx
+﻿// src/pages/products/ProductList.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -243,7 +243,7 @@ export default function ProductList() {
 
           <div className="card">
             {loading ? (
-              <div className="empty-state">Loading…</div>
+              <div className="empty-state">Loadingâ€¦</div>
             ) : (
               <>
                 <div className="table-wrap">
@@ -266,7 +266,7 @@ export default function ProductList() {
                             <td className="name-col">{p.name || "-"}</td>
                             <td>{p.sku || "-"}</td>
                             <td>{p.category || "-"}</td>
-                            <td>{p.unitPrice ? `₹${Number(p.unitPrice).toFixed(2)}` : "-"}</td>
+                            <td>{p.unitPrice ? `â‚¹${Number(p.unitPrice).toFixed(2)}` : "-"}</td>
                             <td>{p.taxRate ? `${p.taxRate}%` : "-"}</td>
                             <td>
                               <input type="checkbox" checked={!!p.isActive} readOnly />

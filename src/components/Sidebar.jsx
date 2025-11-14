@@ -1,4 +1,4 @@
-// src/components/Sidebar.jsx
+﻿// src/components/Sidebar.jsx
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -45,17 +45,17 @@ export default function Sidebar() {
         {role === "ADMIN" && (
           <>
             <NavLink to="/" className={linkClass} end>
-              <span className="nav-icon">🏠</span>
+              <span className="nav-icon">ðŸ </span>
               <span>Admin</span>
             </NavLink>
 
             <NavLink to="/sales" className={linkClass}>
-              <span className="nav-icon">💳</span>
+              <span className="nav-icon">ðŸ’³</span>
               <span>Sales</span>
             </NavLink>
 
             <NavLink to="/products" className={linkClass}>
-              <span className="nav-icon">📦</span>
+              <span className="nav-icon">ðŸ“¦</span>
               <span>Products</span>
             </NavLink>
 
@@ -68,33 +68,33 @@ export default function Sidebar() {
                 aria-expanded={inventoryOpen}
                 aria-controls="inventory-submenu"
               >
-                <span className="nav-icon">📚</span>
+                <span className="nav-icon">ðŸ“š</span>
                 <span>Inventory</span>
                 <span className="chev" style={{ marginLeft: "auto" }}>
-                  {inventoryOpen ? "▾" : "▸"}
+                  {inventoryOpen ? "â–¾" : "â–¸"}
                 </span>
               </button>
 
               <div id="inventory-submenu" className={`nav-group ${inventoryOpen ? "open" : "closed"}`}>
                 <NavLink to="/inventory/add-batch" className={({ isActive }) => (isActive ? "nav-item sub active" : "nav-item sub")}>
-                  <span className="nav-icon">➕</span>
+                  <span className="nav-icon">âž•</span>
                   <span>Add Batch</span>
                 </NavLink>
 
                 <NavLink to="/inventory/stock-by-product" className={({ isActive }) => (isActive ? "nav-item sub active" : "nav-item sub")}>
-                  <span className="nav-icon">📊</span>
+                  <span className="nav-icon">ðŸ“Š</span>
                   <span>Stock by Product</span>
                 </NavLink>
               </div>
             </div>
 
             <NavLink to="/user/users" className={linkClass}>
-              <span className="nav-icon">👥</span>
+              <span className="nav-icon">ðŸ‘¥</span>
               <span>User Logins</span>
             </NavLink>
 
             <NavLink to="/reports" className={linkClass}>
-              <span className="nav-icon">📈</span>
+              <span className="nav-icon">ðŸ“ˆ</span>
               <span>Reports</span>
             </NavLink>
           </>
@@ -106,29 +106,29 @@ export default function Sidebar() {
         {role === "MANAGER" && (
           <>
             <NavLink to="/manager" className={linkClass} end>
-              <span className="nav-icon">🏠</span>
+              <span className="nav-icon">ðŸ </span>
               <span>Dashboard</span>
             </NavLink>
 
             <NavLink to="/inventory/stock-by-product" className={linkClass}>
-              <span className="nav-icon">📊</span>
+              <span className="nav-icon">ðŸ“Š</span>
               <span>Stock by Products</span>
             </NavLink>
 
             <NavLink to="/suppliers" className={linkClass}>
-              <span className="nav-icon">🚚</span>
+              <span className="nav-icon">ðŸšš</span>
               <span>Suppliers</span>
             </NavLink>
 
             {/* Purchase Orders */}
             <NavLink to="/PurchaseOrders" className={linkClass}>
-              <span className="nav-icon">📈</span>
+              <span className="nav-icon">ðŸ“ˆ</span>
               <span>PurchaseOrders</span>
             </NavLink>
             
 
             <NavLink to="/reports" className={linkClass}>
-              <span className="nav-icon">📈</span>
+              <span className="nav-icon">ðŸ“ˆ</span>
               <span>Reports</span>
             </NavLink>
           </>
@@ -140,18 +140,18 @@ export default function Sidebar() {
         {role === "CASHIER" && (
           <>
             <NavLink to="/cashier" className={linkClass} end>
-              <span className="nav-icon">🏠</span>
+              <span className="nav-icon">ðŸ </span>
               <span>Dashboard</span>
             </NavLink>
 
             <NavLink to="/products" className={linkClass}>
-              <span className="nav-icon">📦</span>
+              <span className="nav-icon">ðŸ“¦</span>
               <span>Products</span>
             </NavLink>
             
 
             <NavLink to="/pos" className={linkClass}>
-              <span className="nav-icon">🧾</span>
+              <span className="nav-icon">ðŸ§¾</span>
               <span>Billing</span>
             </NavLink>
 

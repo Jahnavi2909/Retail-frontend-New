@@ -1,4 +1,4 @@
-// src/components/RazorPay.jsx
+﻿// src/components/RazorPay.jsx
 import React from "react";
 import Cookies from "js-cookie";
 
@@ -23,7 +23,7 @@ function loadRazorpayScript(src) {
 const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
   const handlePayment = async () => {
-    // ✅ Check cashier ID before proceeding
+    // âœ… Check cashier ID before proceeding
     if (validateCashierId && !validateCashierId()) {
       alert("Please enter a valid Cashier ID before proceeding.");
       return;
@@ -31,12 +31,12 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
     const res = await loadRazorpayScript("https://checkout.razorpay.com/v1/checkout.js");
     if (!res) {
-      alert("⚠️ Razorpay SDK failed to load. Please check your connection.");
+      alert("âš ï¸ Razorpay SDK failed to load. Please check your connection.");
       return;
     }
 
     try {
-      // Step 1️⃣: Create order from backend
+      // Step 1ï¸âƒ£: Create order from backend
       const orderResponse = await fetch("https://smartinventorysystemsbyvinodmudavath.onrender.com/api/payment/create-order", {
         method: "POST",
         headers: {
@@ -51,7 +51,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
         throw new Error("Invalid order response from server");
       }
 
-      // Step 2️⃣: Setup Razorpay checkout
+      // Step 2ï¸âƒ£: Setup Razorpay checkout
       const options = {
         key: orderData.key,
         amount: orderData.amount.toString(),
@@ -63,7 +63,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
         handler: async function (response) {
           try {
-            // Step 3️⃣: Verify payment on backend
+            // Step 3ï¸âƒ£: Verify payment on backend
             const verifyData = {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -82,18 +82,18 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
             const verifyResult = await verifyRes.json();
 
             if (verifyResult.status === "succuss" || verifyResult.status === "success") {
-              alert("✅ Payment successful and verified!");
+              alert("âœ… Payment successful and verified!");
 
-              // Step 4️⃣: Notify parent (SalePOS) that payment succeeded
+              // Step 4ï¸âƒ£: Notify parent (SalePOS) that payment succeeded
               if (onSuccess) {
                 await onSuccess(response);
               }
             } else {
-              alert("❌ Payment verification failed!");
+              alert("âŒ Payment verification failed!");
             }
           } catch (err) {
             console.error("Verification error:", err);
-            alert("❌ Error verifying payment.");
+            alert("âŒ Error verifying payment.");
           }
         },
 
@@ -106,16 +106,16 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
       const rzp = new window.Razorpay(options);
 
-      // ✅ Add cancel handler
+      // âœ… Add cancel handler
       rzp.on("payment.failed", function (response) {
-        alert("❌ Payment was cancelled or failed.");
+        alert("âŒ Payment was cancelled or failed.");
         console.error("Payment failed:", response.error);
       });
 
       rzp.open();
     } catch (err) {
       console.error("Payment initiation error:", err);
-      alert("❌ Payment initiation failed. Please try again.");
+      alert("âŒ Payment initiation failed. Please try again.");
     }
   };
 
@@ -132,7 +132,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
           cursor: "pointer",
         }}
       >
-        💳 Pay with Razorpay
+        ðŸ’³ Pay with Razorpay
       </button>
 
       <button
@@ -146,7 +146,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
           cursor: "pointer",
         }}
       >
-        ❌ Cancel
+        âŒ Cancel
       </button>
     </div>
   );

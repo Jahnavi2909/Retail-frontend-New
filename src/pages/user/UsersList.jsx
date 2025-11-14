@@ -1,4 +1,4 @@
-// src/pages/user/UsersList.jsx
+﻿// src/pages/user/UsersList.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -173,7 +173,7 @@ export default function UsersList() {
 
         <div className="card">
           {loading ? (
-            <div className="loading">Loading…</div>
+            <div className="loading">Loadingâ€¦</div>
           ) : (
             <div className="table-wrap">
               <table className="products-table">
@@ -207,13 +207,13 @@ export default function UsersList() {
                           <td>{formatRole(u.role)}</td>
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontFamily: "monospace" }}>{shown ? shown : "••••••••"}</span>
+                              <span style={{ fontFamily: "monospace" }}>{shown ? shown : "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"}</span>
                               <button
                                 className="action-btn"
                                 onClick={() => togglePasswordReveal(id)}
                                 title={rp.visible ? "Hide password" : "Show password"}
                               >
-                                {rp.visible ? "🙈" : "👁️"}
+                                {rp.visible ? "ðŸ™ˆ" : "ðŸ‘ï¸"}
                               </button>
                               {noPlaintext && <small style={{ color: "#8b9aa6" }}> (not available)</small>}
                             </div>
