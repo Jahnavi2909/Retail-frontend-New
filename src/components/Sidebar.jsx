@@ -1,10 +1,10 @@
 // src/components/Sidebar.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LogoSmall from "./LogoSmall";
 import "./sidebar.css";
 import AuthService from "../services/AuthService";
+import { FaHome, FaShoppingCart, FaBox, FaWarehouse, FaPlus, FaBoxes, FaUsers, FaChartBar, FaTruck, FaCashRegister, FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 // Normalize and compare role names (handles ROLE_ADMIN, role arrays, etc.)
 function normalizeRole(roleRaw) {
@@ -25,13 +25,9 @@ export default function Sidebar() {
 
   // Collapse controls for nested menus
   const [inventoryOpen, setInventoryOpen] = useState(location.pathname.startsWith("/inventory"));
-  const [purchaseOpen, setPurchaseOpen] = useState(location.pathname.startsWith("/purchase"));
-  const [reportsOpen, setReportsOpen] = useState(location.pathname.startsWith("/reports") || location.pathname.startsWith("/sales"));
 
   useEffect(() => {
     if (location.pathname.startsWith("/inventory")) setInventoryOpen(true);
-    if (location.pathname.startsWith("/purchase")) setPurchaseOpen(true);
-    if (location.pathname.startsWith("/reports")) setReportsOpen(true);
   }, [location.pathname]);
 
   const linkClass = ({ isActive }) => (isActive ? "nav-item active" : "nav-item");
@@ -45,17 +41,17 @@ export default function Sidebar() {
         {role === "ADMIN" && (
           <>
             <NavLink to="/" className={linkClass} end>
-              <span className="nav-icon">ðŸ </span>
+              <span className="nav-icon"><FaHome /></span>
               <span>Admin</span>
             </NavLink>
 
             <NavLink to="/sales" className={linkClass}>
-              <span className="nav-icon">ðŸ’³</span>
+              <span className="nav-icon"><FaShoppingCart /></span>
               <span>Sales</span>
             </NavLink>
 
             <NavLink to="/products" className={linkClass}>
-              <span className="nav-icon">ðŸ“¦</span>
+              <span className="nav-icon"><FaBox /></span>
               <span>Products</span>
             </NavLink>
 
@@ -68,33 +64,33 @@ export default function Sidebar() {
                 aria-expanded={inventoryOpen}
                 aria-controls="inventory-submenu"
               >
-                <span className="nav-icon">ðŸ“š</span>
+                <span className="nav-icon"><FaWarehouse /></span>
                 <span>Inventory</span>
                 <span className="chev" style={{ marginLeft: "auto" }}>
-                  {inventoryOpen ? "â–¾" : "â–¸"}
+                  {inventoryOpen ? <FaChevronDown /> : <FaChevronUp />}
                 </span>
               </button>
 
               <div id="inventory-submenu" className={`nav-group ${inventoryOpen ? "open" : "closed"}`}>
                 <NavLink to="/inventory/add-batch" className={({ isActive }) => (isActive ? "nav-item sub active" : "nav-item sub")}>
-                  <span className="nav-icon">âž•</span>
+                  <span className="nav-icon"><FaPlus /></span>
                   <span>Add Batch</span>
                 </NavLink>
 
                 <NavLink to="/inventory/stock-by-product" className={({ isActive }) => (isActive ? "nav-item sub active" : "nav-item sub")}>
-                  <span className="nav-icon">ðŸ“Š</span>
+                  <span className="nav-icon"><FaBoxes /></span>
                   <span>Stock by Product</span>
                 </NavLink>
               </div>
             </div>
 
             <NavLink to="/user/users" className={linkClass}>
-              <span className="nav-icon">ðŸ‘¥</span>
+              <span className="nav-icon"><FaUsers /></span>
               <span>User Logins</span>
             </NavLink>
 
             <NavLink to="/reports" className={linkClass}>
-              <span className="nav-icon">ðŸ“ˆ</span>
+              <span className="nav-icon"><FaChartBar /></span>
               <span>Reports</span>
             </NavLink>
           </>
@@ -106,29 +102,28 @@ export default function Sidebar() {
         {role === "MANAGER" && (
           <>
             <NavLink to="/manager" className={linkClass} end>
-              <span className="nav-icon">ðŸ </span>
+              <span className="nav-icon"><FaHome /></span>
               <span>Dashboard</span>
             </NavLink>
 
             <NavLink to="/inventory/stock-by-product" className={linkClass}>
-              <span className="nav-icon">ðŸ“Š</span>
+              <span className="nav-icon"><FaBoxes /></span>
               <span>Stock by Products</span>
             </NavLink>
 
             <NavLink to="/suppliers" className={linkClass}>
-              <span className="nav-icon">ðŸšš</span>
+              <span className="nav-icon"><FaTruck /></span>
               <span>Suppliers</span>
             </NavLink>
 
             {/* Purchase Orders */}
             <NavLink to="/PurchaseOrders" className={linkClass}>
-              <span className="nav-icon">ðŸ“ˆ</span>
+              <span className="nav-icon"><FaChartBar /></span>
               <span>PurchaseOrders</span>
             </NavLink>
-            
 
             <NavLink to="/reports" className={linkClass}>
-              <span className="nav-icon">ðŸ“ˆ</span>
+              <span className="nav-icon"><FaChartBar /></span>
               <span>Reports</span>
             </NavLink>
           </>
@@ -140,22 +135,19 @@ export default function Sidebar() {
         {role === "CASHIER" && (
           <>
             <NavLink to="/cashier" className={linkClass} end>
-              <span className="nav-icon">ðŸ </span>
+              <span className="nav-icon"><FaHome /></span>
               <span>Dashboard</span>
             </NavLink>
 
             <NavLink to="/products" className={linkClass}>
-              <span className="nav-icon">ðŸ“¦</span>
+              <span className="nav-icon"><FaBox /></span>
               <span>Products</span>
             </NavLink>
-            
 
             <NavLink to="/pos" className={linkClass}>
-              <span className="nav-icon">ðŸ§¾</span>
+              <span className="nav-icon"><FaCashRegister /></span>
               <span>Billing</span>
             </NavLink>
-
-           
           </>
         )}
       </nav>

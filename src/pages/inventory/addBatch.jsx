@@ -219,7 +219,7 @@ export default function AddBatch() {
               </label>
 
               <label className="block">
-                <div className="text-sm font-medium mb-1">Cost Price (â‚¹)</div>
+                <div className="text-sm font-medium mb-1">Cost Price (₹)</div>
                 {/* costPrice is read-only and derived from selected product */}
                 <input
                   type="number"

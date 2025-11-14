@@ -17,15 +17,15 @@ import Sidebar from "../../components/Sidebar";
 import { API_BASE } from "../../services/Api";
 
 function formatCurrency(v) {
-  if (v == null) return "â‚¹0.00";
+  if (v == null) return "₹0.00";
   const n = Number(v);
   if (Number.isNaN(n)) return String(v);
-  return `â‚¹${n.toFixed(2)}`;
+  return `₹${n.toFixed(2)}`;
 }
 
 /**
  * Safe helpers to extract numeric fields from a transaction item.
- * Backend transactions may name fields differently â€” try common keys.
+ * Backend transactions may name fields differently - try common keys.
  */
 const extractTxnAmount = (tx) =>
   Number(tx?.amount ?? tx?.total ?? tx?.gross ?? tx?.totalAmount ?? tx?.price ?? 0);
@@ -155,7 +155,7 @@ export default function Reports() {
     if (!report) return [];
     return [
       {
-        name: `${report.from} â†’ ${report.to}`,
+        name: `${report.from} → ${report.to}`,
         Gross: Number(report.grossTotal ?? 0),
         Tax: Number(report.taxTotal ?? 0),
         Net: Number(report.netTotal ?? 0),
@@ -186,7 +186,7 @@ export default function Reports() {
 
           <div>
             <button onClick={loadReports} disabled={loading} className="btn btn-primary">
-              {loading ? "Loadingâ€¦" : "Load Report"}
+              {loading ? "Loading..." : "Load Report"}
             </button>
           </div>
 
@@ -213,7 +213,7 @@ export default function Reports() {
             <div className="kpi-card" style={{ padding: 12 }}>
               <div className="kpi-title">Date Range</div>
               <div className="kpi-value" style={{ fontSize: 16 }}>
-                {report.from} â†’ {report.to}
+                {report.from} → {report.to}
               </div>
             </div>
 
@@ -253,11 +253,11 @@ export default function Reports() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => (value == null ? "-" : `â‚¹${Number(value).toFixed(2)}`)} />
+                <Tooltip formatter={(value) => (value == null ? "-" : `₹${Number(value).toFixed(2)}`)} />
                 <Legend />
-                <Bar dataKey="Gross" fill="#1565c0" name="Gross (â‚¹)" />
-                <Bar dataKey="Tax" fill="#f59e0b" name="Tax (â‚¹)" />
-                <Bar dataKey="Net" fill="#10b981" name="Net (â‚¹)" />
+                <Bar dataKey="Gross" fill="#1565c0" name="Gross (₹)" />
+                <Bar dataKey="Tax" fill="#f59e0b" name="Tax (₹)" />
+                <Bar dataKey="Net" fill="#10b981" name="Net (₹)" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -273,10 +273,10 @@ export default function Reports() {
                 <th style={{ padding: 8 }}>From</th>
                 <th style={{ padding: 8 }}>To</th>
                 <th style={{ padding: 8 }}>Transactions</th>
-                <th style={{ padding: 8 }}>Gross (â‚¹)</th>
-                <th style={{ padding: 8 }}>Tax (â‚¹)</th>
-                <th style={{ padding: 8 }}>Net (â‚¹)</th>
-                <th style={{ padding: 8 }}>Discount (â‚¹)</th>
+                <th style={{ padding: 8 }}>Gross (₹)</th>
+                <th style={{ padding: 8 }}>Tax (₹)</th>
+                <th style={{ padding: 8 }}>Net (₹)</th>
+                <th style={{ padding: 8 }}>Discount (₹)</th>
               </tr>
             </thead>
             <tbody>
@@ -293,7 +293,7 @@ export default function Reports() {
               ) : (
                 <tr>
                   <td colSpan={7} style={{ padding: 18, textAlign: "center", color: "#6b7280" }}>
-                    {loading ? "Loadingâ€¦" : error ? error : "No summary available for the selected date range."}
+                    {loading ? "Loading..." : error ? error : "No summary available for the selected date range."}
                   </td>
                 </tr>
               )}

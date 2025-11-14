@@ -131,8 +131,8 @@ export default function SalesReports() {
                     const items = Array.isArray(s.items) ? s.items.length : ((s.itemsCount ?? s.items) || "-");
 
                     // amounts: display currency-friendly strings (adjust currency symbol as needed)
-                    const net = typeof s.net === "number" ? `â‚¹${s.net.toFixed(2)}` : (s.net ?? s.total ?? "-");
-                    const tax = typeof s.tax === "number" ? `â‚¹${s.tax.toFixed(2)}` : (s.tax ?? "-");
+                    const net = typeof s.net === "number" ? `₹${s.net.toFixed(2)}` : (s.net ?? s.total ?? "-");
+                    const tax = typeof s.tax === "number" ? `₹${s.tax.toFixed(2)}` : (s.tax ?? "-");
 
                     return (
                       <tr key={id}>

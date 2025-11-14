@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import LogoSmall from "./LogoSmall";
 import { useAuth } from "../context/AuthContext";
 import AuthService from "../services/AuthService";
+import { FaRegHandPaper, FaChevronDown, FaSignOutAlt } from "react-icons/fa";
 
 export default function Navbar() {
   const { user, logout } = useAuth() || {};
@@ -38,7 +39,7 @@ export default function Navbar() {
     let r = roleRaw;
     if (Array.isArray(roleRaw) && roleRaw.length) r = roleRaw[0];
     if (typeof r === "object") r = r.name ?? r.role ?? r.authority ?? "";
-    return String(r || "").toUpperCase().replace(/^ROLE[_\-]/, "");
+    return String(r || "").toUpperCase().replace(/^ROLE[-_]/, "");
   };
 
   // Determine primary role from user object (tries multiple common property names)
@@ -138,11 +139,11 @@ export default function Navbar() {
               transition: "background 0.2s ease",
             }}
           >
-            ðŸ‘‹ Hi,{" "}
+            <FaRegHandPaper /> Hi,{" "}
             <span style={{ fontWeight: 600 }}>
               {displayUser.username || displayUser.email || "User"}
             </span>
-            <span style={{ fontSize: 12 }}>â–¾</span>
+            <span style={{ fontSize: 12 }}><FaChevronDown /></span>
 
             {/* Dropdown */}
             {menuOpen && (
@@ -181,18 +182,13 @@ export default function Navbar() {
                     (e.target.style.background = "transparent")
                   }
                 >
-                  ðŸšª Logout
+                  <FaSignOutAlt /> Logout
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <a
-            href="/login"
-           
-          >
-            
-          </a>
+          <a href="/login">Login</a>
         )}
       </div>
     </header>

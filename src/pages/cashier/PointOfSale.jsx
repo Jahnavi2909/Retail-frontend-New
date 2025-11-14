@@ -119,7 +119,7 @@ export default function PointOfSale() {
 
             <div style={{ height: 420, overflowY: "auto" }}>
               {loadingProducts ? (
-                <div className="empty-state">Loading productsâ€¦</div>
+                <div className="empty-state">Loading products...</div>
               ) : (filtered && filtered.length) ? (
                 <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
                   {filtered.map((p) => {
@@ -137,7 +137,7 @@ export default function PointOfSale() {
                       }}>
                         <div>
                           <div style={{ fontWeight: 600 }}>{p.name}</div>
-                          <div style={{ fontSize: 12, color: "#666" }}>{p.sku || p.id} â€¢ {p.category}</div>
+                          <div style={{ fontSize: 12, color: "#666" }}>{p.sku || p.id} • {p.category}</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
                           <div style={{ fontWeight: 700 }}>${Number(price).toFixed(2)}</div>

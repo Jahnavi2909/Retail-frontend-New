@@ -174,7 +174,7 @@ export default function StockByProduct() {
                 {loading ? (
                   <tr>
                     <td colSpan="7" className="empty-state">
-                      Loadingâ€¦
+                      Loading...
                     </td>
                   </tr>
                 ) : total === 0 ? (

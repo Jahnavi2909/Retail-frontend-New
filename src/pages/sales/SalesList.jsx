@@ -1,5 +1,5 @@
 // src/pages/sales/SalesList.jsx
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import SalesService from "../../services/SalesService";
 import Sidebar from "../../components/Sidebar";
 import "../../styles.css";
@@ -129,7 +129,7 @@ export default function SalesList() {
     if (v == null) return "-";
     const n = Number(v);
     if (Number.isNaN(n)) return String(v);
-    return `â‚¹${n.toFixed(2)}`;
+    return `₹${n.toFixed(2)}`;
   };
   const formatCurrencyTotal = (v) => {
     if (v == null) return "-";
@@ -252,7 +252,7 @@ export default function SalesList() {
 
         <div className="table-card">
           {loading ? (
-            <div style={{ padding: 20 }}>Loadingâ€¦</div>
+            <div style={{ padding: 20 }}>Loading...</div>
           ) : error ? (
             <div style={{ padding: 20, color: "crimson" }}>{error}</div>
           ) : (
@@ -370,7 +370,7 @@ export default function SalesList() {
               </div>
 
               {detailsLoading ? (
-                <div style={{ padding: 12 }}>Loadingâ€¦</div>
+                <div style={{ padding: 12 }}>Loading...</div>
               ) : (
                 <>
                   <div style={{ marginTop: 12, display: "flex", gap: 18, flexWrap: "wrap" }}>

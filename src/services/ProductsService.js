@@ -58,7 +58,7 @@
 //   try {
 //     const res = await api.get("/api/products", {
 //       params: { page, size }, headers: {
-//         Authorization: `Bearer ${Cookies.get('sr_token')}`,   // âœ… send JWT in header
+//         Authorization: `Bearer ${Cookies.get('sr_token')}`,   //  send JWT in header
 //       }
 //     });
 //     return extractPageResponse(res) || {
@@ -166,7 +166,7 @@ export async function searchProducts({ name, page = 0, size = 5 } = {}) {
   try {
     const params = { page, size };
 
-    // âœ… Pass only name (no sku)
+    //  Pass only name (no sku)
     if (name) params.name = name;
 
     const config = {

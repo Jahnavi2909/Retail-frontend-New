@@ -17,7 +17,7 @@ function normalizeRole(roleRaw) {
   let r = roleRaw;
   if (Array.isArray(roleRaw) && roleRaw.length) r = roleRaw[0];
   if (typeof r === "object") r = r.name ?? r.role ?? r.authority ?? "";
-  r = String(r || "").toUpperCase().replace(/^ROLE[_\-]/, "");
+  r = String(r || "").toUpperCase().replace(/^ROLE[-_]/, "");
   return r;
 }
 

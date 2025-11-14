@@ -1,7 +1,7 @@
 // src/pages/suppliers/Suppliers.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { FaPlus } from "react-icons/fa";
 import "../../styles/Suppliers.css";
-import { NavLink } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Sidebar from "../../components/Sidebar";
@@ -205,7 +205,7 @@ const Suppliers = () => {
       <div className="main-content">
         <header className="navbar">
           <h1>Suppliers</h1>
-          <button className="add-btn" onClick={() => setShowForm(true)}>âž• Add Supplier</button>
+          <button className="add-btn" onClick={() => setShowForm(true)}><FaPlus /> Add Supplier</button>
         </header>
 
         {/* Search input */}
@@ -256,7 +256,7 @@ const Suppliers = () => {
                     <td>{supplier.address || "-"}</td>
                     <td>{supplier.isActive ? "Yes" : "No"}</td>
                     <td>
-                      <button className="edit-btn" onClick={() => handleEdit(supplier)}>âœ Edit</button>
+                      <button className="edit-btn" onClick={() => handleEdit(supplier)}> Edit</button>
                       <button className="delete-btn" onClick={() => handleDelete(supplier.id)}>ðŸ—‘ Delete</button>
                     </td>
                   </tr>

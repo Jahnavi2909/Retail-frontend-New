@@ -1,6 +1,6 @@
-// src/components/RazorPay.jsx
-import React from "react";
+﻿// src/components/RazorPay.jsx
 import Cookies from "js-cookie";
+import { FaCreditCard } from "react-icons/fa";
 
 // helper: load razorpay script dynamically
 function loadRazorpayScript(src) {
@@ -23,7 +23,7 @@ function loadRazorpayScript(src) {
 const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
   const handlePayment = async () => {
-    // âœ… Check cashier ID before proceeding
+    // Check cashier ID before proceeding
     if (validateCashierId && !validateCashierId()) {
       alert("Please enter a valid Cashier ID before proceeding.");
       return;
@@ -31,12 +31,12 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
     const res = await loadRazorpayScript("https://checkout.razorpay.com/v1/checkout.js");
     if (!res) {
-      alert("âš ï¸ Razorpay SDK failed to load. Please check your connection.");
+      alert("š ï¸ Razorpay SDK failed to load. Please check your connection.");
       return;
     }
 
     try {
-      // Step 1ï¸âƒ£: Create order from backend
+      // Step 1ï¸ƒ£: Create order from backend
       const orderResponse = await fetch("https://smartinventorysystemsbyvinodmudavath.onrender.com/api/payment/create-order", {
         method: "POST",
         headers: {
@@ -51,7 +51,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
         throw new Error("Invalid order response from server");
       }
 
-      // Step 2ï¸âƒ£: Setup Razorpay checkout
+      // Step 2ï¸ƒ£: Setup Razorpay checkout
       const options = {
         key: orderData.key,
         amount: orderData.amount.toString(),
@@ -63,7 +63,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
         handler: async function (response) {
           try {
-            // Step 3ï¸âƒ£: Verify payment on backend
+            // Step 3ï¸ƒ£: Verify payment on backend
             const verifyData = {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -82,18 +82,18 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
             const verifyResult = await verifyRes.json();
 
             if (verifyResult.status === "succuss" || verifyResult.status === "success") {
-              alert("âœ… Payment successful and verified!");
+              alert("œ… Payment successful and verified!");
 
-              // Step 4ï¸âƒ£: Notify parent (SalePOS) that payment succeeded
+              // Step 4ï¸ƒ£: Notify parent (SalePOS) that payment succeeded
               if (onSuccess) {
                 await onSuccess(response);
               }
             } else {
-              alert("âŒ Payment verification failed!");
+              alert("Œ Payment verification failed!");
             }
           } catch (err) {
             console.error("Verification error:", err);
-            alert("âŒ Error verifying payment.");
+            alert("Œ Error verifying payment.");
           }
         },
 
@@ -106,16 +106,16 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
       const rzp = new window.Razorpay(options);
 
-      // âœ… Add cancel handler
+      // œ… Add cancel handler
       rzp.on("payment.failed", function (response) {
-        alert("âŒ Payment was cancelled or failed.");
+        alert("Œ Payment was cancelled or failed.");
         console.error("Payment failed:", response.error);
       });
 
       rzp.open();
     } catch (err) {
       console.error("Payment initiation error:", err);
-      alert("âŒ Payment initiation failed. Please try again.");
+      alert("Œ Payment initiation failed. Please try again.");
     }
   };
 
@@ -132,7 +132,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
           cursor: "pointer",
         }}
       >
-        ðŸ’³ Pay with Razorpay
+        <FaCreditCard /> Pay with Razorpay
       </button>
 
       <button
@@ -146,7 +146,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
           cursor: "pointer",
         }}
       >
-        âŒ Cancel
+Œ Cancel
       </button>
     </div>
   );

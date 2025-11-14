@@ -1,11 +1,11 @@
 // src/pages/manager/ManagerDashboard.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../../styles/ManagerDashboard.css";
-import { NavLink } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Sidebar from "../../components/Sidebar";
 import { API_BASE } from "../../services/Api";
+import { FaUser } from "react-icons/fa";
 
 /**
  * ManagerDashboard
@@ -169,7 +169,7 @@ const ManagerDashboard = () => {
       <div className="main-content">
         <header className="navbar">
           <h1>Manager Dashboard</h1>
-          <div className="user-icon">ðŸ””</div>
+          <div className="user-icon"><FaUser /></div>
         </header>
 
         {error && <p className="error-message">{error}</p>}

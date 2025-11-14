@@ -1,5 +1,5 @@
 // src/pages/CashierDashboard.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import  { useEffect, useState } from "react";
 import "../../styles/CashierDashboard.css";
 import "../../styles/SalePOS.css";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ const PROD_PAGE_SIZE = 3; // pagination for top products
 const formatCurrency = (v) => {
   const n = Number(v ?? 0);
   if (Number.isNaN(n)) return String(v);
-  return `â‚¹${n.toFixed(2)}`;
+  return `₹${n.toFixed(2)}`;
 };
 
 // Safe extraction when reports endpoint returns different shapes
@@ -233,7 +233,7 @@ export default function CashierDashboard() {
         return;
       }
 
-      // fallback: server didn't return totals â€” try to compute from nested arrays if present
+      // fallback: server didn't return totals - try to compute from nested arrays if present
       const nested = payload?.data ?? payload?.content ?? payload?.sales ?? null;
       if (Array.isArray(nested)) {
         const { totalSales } = computeTotalsFromTxList(nested);
@@ -382,7 +382,7 @@ export default function CashierDashboard() {
                   <tr>
                     <th>ID</th>
                     <th>Name</th>
-                    <th>Price (â‚¹)</th>
+                    <th>Price (₹)</th>
                     <th>Tax</th>
                 
                   </tr>

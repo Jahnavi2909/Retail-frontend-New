@@ -1,5 +1,5 @@
 // src/pages/user/UsersList.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import UsersService from "../../services/UsersService";
@@ -78,7 +78,7 @@ export default function UsersList() {
       r = role.name ?? role.role ?? JSON.stringify(role);
     }
     if (typeof r !== "string") r = String(r);
-    r = r.replace(/^ROLE[_\-]/i, "").replace(/^role[_\-]/i, "");
+    r = r.replace(/^ROLE[-_]/i, "").replace(/^role[-_]/i, "");
     r = r.toLowerCase();
     return r.charAt(0).toUpperCase() + r.slice(1);
   }
@@ -173,7 +173,7 @@ export default function UsersList() {
 
         <div className="card">
           {loading ? (
-            <div className="loading">Loadingâ€¦</div>
+            <div className="loading">Loading...</div>
           ) : (
             <div className="table-wrap">
               <table className="products-table">
@@ -207,7 +207,7 @@ export default function UsersList() {
                           <td>{formatRole(u.role)}</td>
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <span style={{ fontFamily: "monospace" }}>{shown ? shown : "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"}</span>
+                              <span style={{ fontFamily: "monospace" }}>{shown ? shown : "••••••••"}</span>
                               <button
                                 className="action-btn"
                                 onClick={() => togglePasswordReveal(id)}

@@ -1,7 +1,7 @@
 // src/pages/purchase/PurchaseOrders.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { FaPlus } from "react-icons/fa";
 import "../../styles/PurchaseOrders.css";
-import { NavLink } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import Sidebar from "../../components/Sidebar";
@@ -217,7 +217,7 @@ const PurchaseOrders = () => {
         <div className="header">
           <h1>Purchase Orders</h1>
           <button className="new-order-btn" onClick={() => setShowForm(true)}>
-            âž• New Order
+            <FaPlus /> New Order
           </button>
         </div>
 
@@ -264,7 +264,7 @@ const PurchaseOrders = () => {
                   </td>
                   <td>
                     <button className="edit-btn" onClick={() => handleEdit(order)}>
-                      âœï¸ Edit
+ï¸ Edit
                     </button>
                     <button className="delete-btn" onClick={() => handleDelete(order.id)}>
                       ðŸ—‘ Delete
