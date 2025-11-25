@@ -32,10 +32,10 @@ jobs:
           aws-region: ap-south-1
 
       - name: Deploy to S3
-        run: aws s3 sync build/ s3://smartfrontend --delete
+        run: aws s3 sync build/ s3://retail-project-002 --delete
 
       - name: Invalidate CloudFront Cache
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id EG90ELKBURG5W \
             --paths "/*"
