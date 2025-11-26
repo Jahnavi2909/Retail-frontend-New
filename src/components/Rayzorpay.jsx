@@ -37,7 +37,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
 
     try {
       // Step 1ï¸ƒ£: Create order from backend
-      const orderResponse = await fetch("https://smartinventorysystemsbyvinodmudavath.onrender.com/api/payment/create-order", {
+      const orderResponse = await fetch("https://d15c13s9p0a6x1.cloudfront.net/api/payment/create-order", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ const RazorPay = ({ amount, onSuccess, validateCashierId, onCancel }) => {
               razorpay_signature: response.razorpay_signature,
             };
 
-            const verifyRes = await fetch("https://smartinventorysystemsbyvinodmudavath.onrender.com/api/payment/verify", {
+            const verifyRes = await fetch("https://d15c13s9p0a6x1.cloudfront.net/api/payment/verify", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
