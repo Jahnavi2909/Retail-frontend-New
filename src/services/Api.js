@@ -3,7 +3,7 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 // export const API_BASE = "https://d1x2sux8i7gb9h.cloudfront.net/api"; 
-export const API_BASE = "http://3.111.57.166:8080"; 
+export const API_BASE = "d15c13s9p0a6x1.cloudfront.net"; 
 
 const api = axios.create({
   baseURL:
